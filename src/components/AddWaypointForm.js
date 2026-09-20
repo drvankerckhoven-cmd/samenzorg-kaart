@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { supabase } from '../app/supabase';
+import { translations } from '../app/translations';
 
-export default function AddWaypointForm({ onWaypointAdded }) {
+export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [melding, setMelding] = useState(null);
+
+  const t = translations[currentLang] || translations.nl;
 
   const [formData, setFormData] = useState({
     naam: '',
@@ -30,7 +33,7 @@ export default function AddWaypointForm({ onWaypointAdded }) {
     let gevondenLat = null;
     let gevondenLng = null;
 
-    // 1. Automatisch coördinaten opzoeken via OpenStreetMap (Nominatim)
+    // 1. Coördinaten opzoeken via OpenStreetMap
     const zoekAdres = `${formData.adres} ${formData.gemeente}`.trim();
     if (zoekAdres) {
       try {
@@ -48,13 +51,13 @@ export default function AddWaypointForm({ onWaypointAdded }) {
       }
     }
 
-    // 2. Domeinen omzetten naar een array
+    // 2. Domeinen omzetten naar array
     const domeinenArray = formData.domeinenText
       .split(',')
       .map(d => d.trim())
       .filter(Boolean);
 
-    // 3. Object samenstellen voor Supabase
+    // 3. Opslaan in Supabase (de veldnamen in de DB blijven in het Nederlands)
     const nieuwWaypoint = {
       naam: formData.naam,
       type: formData.type,
@@ -71,11 +74,11 @@ export default function AddWaypointForm({ onWaypointAdded }) {
 
     if (error) {
       console.error('Fout bij verzenden:', JSON.stringify(error, null, 2));
-      setMelding({ type: 'fout', tekst: 'Er is een fout opgetreden bij het inzenden.' });
+      setMelding({ type: 'fout', tekst: t.form.error });
     } else {
       setMelding({ 
         type: 'succes', 
-        tekst: 'Bedankt! Je inzending is ontvangen en wordt beoordeeld door de beheerder.' 
+        tekst: t.form.success 
       });
       setFormData({
         naam: '',
@@ -95,14 +98,14 @@ export default function AddWaypointForm({ onWaypointAdded }) {
     <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 mb-8">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Nieuw Waypoint Aanmelden</h2>
-          <p className="text-sm text-slate-600">Ken je een initiatief of kennispunt? Voeg het toe aan de kaart.</p>
+          <h2 className="text-xl font-bold text-slate-900">{t.title}</h2>
+          <p className="text-sm text-slate-600">{t.subtitle}</p>
         </div>
         <button
           onClick={() => setOpen(!open)}
           className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-md transition-colors"
         >
-          {open ? 'Sluiten' : '+ Locatie Toevoegen'}
+          {open ? t.closeButton : t.addButton}
         </button>
       </div>
 
@@ -119,85 +122,85 @@ export default function AddWaypointForm({ onWaypointAdded }) {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Naam van Initiatief / Kennispunt *</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.name}</label>
             <input
               type="text"
               name="naam"
               required
               value={formData.naam}
               onChange={handleChange}
-              placeholder="bijv. Voedselbos De Eik"
+              placeholder={t.form.namePlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Type *</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.type}</label>
             <select
               name="type"
               value={formData.type}
               onChange={handleChange}
               className="w-full p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
             >
-              <option value="Initiatief">Initiatief</option>
-              <option value="Kennispunt">Kennispunt</option>
-              <option value="Expert">Expert</option>
-              <option value="Samenwerkingsverband">Samenwerkingsverband</option>
+              <option value="Initiatief">{t.form.types.initiatief}</option>
+              <option value="Kennispunt">{t.form.types.kennispunt}</option>
+              <option value="Expert">{t.form.types.expert}</option>
+              <option value="Samenwerkingsverband">{t.form.types.samenwerkingsverband}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Straat + Huisnummer</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.address}</label>
             <input
               type="text"
               name="adres"
               value={formData.adres}
               onChange={handleChange}
-              placeholder="bijv. Grote Markt 1"
+              placeholder={t.form.addressPlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Gemeente / Stad *</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.city}</label>
             <input
               type="text"
               name="gemeente"
               required
               value={formData.gemeente}
               onChange={handleChange}
-              placeholder="bijv. Antwerpen"
+              placeholder={t.form.cityPlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Contact / Website</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.contact}</label>
             <input
               type="text"
               name="contact"
               value={formData.contact}
               onChange={handleChange}
-              placeholder="bijv. info@voorbeeld.be of https://..."
+              placeholder={t.form.contactPlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Domeinen / Thema's (gescheiden door komma's)</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.domains}</label>
             <input
               type="text"
               name="domeinenText"
               value={formData.domeinenText}
               onChange={handleChange}
-              placeholder="bijv. Ecologie, Permacultuur, Onderwijs"
+              placeholder={t.form.domainsPlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
 
           <div className="md:col-span-2">
             <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              Korte beschrijving (max. 300 tekens)
+              {t.form.description}
             </label>
             <textarea
               name="description"
@@ -205,11 +208,11 @@ export default function AddWaypointForm({ onWaypointAdded }) {
               rows={3}
               value={formData.description}
               onChange={handleChange}
-              placeholder="Schrijf hier een korte beschrijving..."
+              placeholder={t.form.descriptionPlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
             <p className="text-xs text-slate-500 mt-1">
-              {300 - formData.description.length} tekens over
+              {300 - formData.description.length} {t.form.charsLeft}
             </p>
           </div>
 
@@ -219,7 +222,7 @@ export default function AddWaypointForm({ onWaypointAdded }) {
               disabled={loading}
               className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-medium text-sm rounded-md transition-colors"
             >
-              {loading ? 'Adres zoeken & verzenden...' : 'Inzenden voor Goedkeuring'}
+              {loading ? t.form.submitting : t.form.submit}
             </button>
           </div>
         </form>

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from './supabase';
 import dynamic from 'next/dynamic';
 import AddWaypointForm from '@/components/AddWaypointForm';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const Map = dynamic(() => import('@/components/Map'), { 
   ssr: false,
@@ -15,6 +16,7 @@ const Map = dynamic(() => import('@/components/Map'), {
 });
 
 export default function Home() {
+  const [currentLang, setCurrentLang] = useState('nl');
   const [waypoints, setWaypoints] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,15 +67,26 @@ export default function Home() {
   return (
     <main className="min-h-screen p-4 md:p-8 bg-slate-50 text-slate-800">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-slate-900">
-          Interactief Kaart- en Kennisplatform
-        </h1>
-        <p className="mb-6 text-slate-600">
-          Ontdek locaties en kennispunten op de interactieve wereldkaart.
-        </p>
+        {/* Header met titel en Taalschakelaar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">
+              Interactief Kaart- en Kennisplatform
+            </h1>
+            <p className="text-slate-600 mt-1">
+              Ontdek locaties en kennispunten op de interactieve wereldkaart.
+            </p>
+          </div>
+          <div className="self-start sm:self-center">
+            <LanguageSelector 
+              currentLang={currentLang} 
+              onLanguageChange={setCurrentLang} 
+            />
+          </div>
+        </div>
 
-        {/* Inzendformulier */}
-        <AddWaypointForm onWaypointAdded={fetchWaypoints} />
+        {/* Inzendformulier met gekozen taal */}
+        <AddWaypointForm onWaypointAdded={fetchWaypoints} currentLang={currentLang} />
 
         {/* Filtersectie */}
         <div className="mb-6 p-4 bg-white rounded-lg border border-slate-200 shadow-sm grid gap-4 md:grid-cols-3">
