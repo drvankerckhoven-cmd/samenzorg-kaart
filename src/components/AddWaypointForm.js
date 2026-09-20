@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '../app/supabase';
 
 export default function AddWaypointForm({ onWaypointAdded }) {
+  const [description, setDescription] = useState('');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [melding, setMelding] = useState(null);
