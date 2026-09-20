@@ -52,9 +52,14 @@ export default function Home() {
   const alleDomeinen = ['Alles', ...Array.from(alleDomeinenSet)];
 
   const gefilterdeWaypoints = waypoints.filter((item) => {
+    const zoek = zoekterm.toLowerCase();
+
     const matchZoekterm = zoekterm === '' || 
-      (item.naam && item.naam.toLowerCase().includes(zoekterm.toLowerCase())) ||
-      (item.gemeente && item.gemeente.toLowerCase().includes(zoekterm.toLowerCase()));
+      (item.naam && item.naam.toLowerCase().includes(zoek)) ||
+      (item.gemeente && item.gemeente.toLowerCase().includes(zoek)) ||
+      (item.adres && item.adres.toLowerCase().includes(zoek)) ||
+      (item.description && item.description.toLowerCase().includes(zoek)) ||
+      (item.contact && item.contact.toLowerCase().includes(zoek));
 
     const matchType = selectType === 'Alles' || item.type === selectType;
 
