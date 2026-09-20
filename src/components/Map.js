@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -16,8 +16,7 @@ const customIcon = new L.Icon({
 });
 
 export default function Map({ waypoints }) {
-  // Standaard startpunt ingesteld op centraal Vlaanderen (51.0, 4.35), 
-  // maar bezoekers kunnen vrij over de hele wereldkaart navigeren/uitzoomen.
+  // Standaard startpunt ingesteld op centraal Vlaanderen (51.0, 4.35)
   const defaultCenter = [51.0, 4.35];
   const defaultZoom = 9;
 
@@ -41,6 +40,19 @@ export default function Map({ waypoints }) {
               position={[item.latitude, item.longitude]} 
               icon={customIcon}
             >
+              {/* Tooltip verschijnt automatisch bij het hoveren over de speld */}
+              <Tooltip direction="top" offset={[0, -30]} opacity={0.95}>
+                <div className="max-w-xs p-1">
+                  <strong className="block text-slate-900 text-sm font-bold">{item.naam}</strong>
+                  {item.description && (
+                    <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </Tooltip>
+
+              {/* Popup opent bij een klik op de speld */}
               <Popup>
                 <div className="p-1">
                   <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded">
@@ -48,7 +60,12 @@ export default function Map({ waypoints }) {
                   </span>
                   <h3 className="font-bold text-base mt-1 text-slate-900">{item.naam}</h3>
                   <p className="text-xs text-slate-600 mb-1">{item.type} &bull; {item.gemeente}</p>
-                  <p className="text-sm">{item.contact}</p>
+                  {item.description && (
+                    <p className="text-xs text-slate-700 my-2 italic bg-slate-50 p-2 rounded border border-slate-100">
+                      "{item.description}"
+                    </p>
+                  )}
+                  <p className="text-sm font-medium text-emerald-700">{item.contact}</p>
                 </div>
               </Popup>
             </Marker>
