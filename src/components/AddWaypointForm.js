@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { supabase } from '../app/supabase';
 
 export default function AddWaypointForm({ onWaypointAdded }) {
-  const [description, setDescription] = useState('');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [melding, setMelding] = useState(null);
@@ -15,6 +14,7 @@ export default function AddWaypointForm({ onWaypointAdded }) {
     adres: '',
     gemeente: '',
     contact: '',
+    description: '',
     domeinenText: ''
   });
 
@@ -60,6 +60,7 @@ export default function AddWaypointForm({ onWaypointAdded }) {
       type: formData.type,
       gemeente: formData.gemeente + (formData.adres ? ` (${formData.adres})` : ''),
       contact: formData.contact,
+      description: formData.description,
       domeinen: domeinenArray,
       latitude: gevondenLat,
       longitude: gevondenLng,
@@ -82,6 +83,7 @@ export default function AddWaypointForm({ onWaypointAdded }) {
         adres: '',
         gemeente: '',
         contact: '',
+        description: '',
         domeinenText: ''
       });
       if (onWaypointAdded) onWaypointAdded();
@@ -191,6 +193,24 @@ export default function AddWaypointForm({ onWaypointAdded }) {
               placeholder="bijv. Ecologie, Permacultuur, Onderwijs"
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              Korte beschrijving (max. 300 tekens)
+            </label>
+            <textarea
+              name="description"
+              maxLength={300}
+              rows={3}
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Schrijf hier een korte beschrijving..."
+              className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              {300 - formData.description.length} tekens over
+            </p>
           </div>
 
           <div className="md:col-span-2 flex justify-end mt-2">
