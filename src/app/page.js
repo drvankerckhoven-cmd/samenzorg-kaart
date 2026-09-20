@@ -5,6 +5,7 @@ import { supabase } from './supabase';
 import dynamic from 'next/dynamic';
 import AddWaypointForm from '@/components/AddWaypointForm';
 import LanguageSelector from '@/components/LanguageSelector';
+import { translations } from './translations';
 
 const Map = dynamic(() => import('@/components/Map'), { 
   ssr: false,
@@ -24,6 +25,8 @@ export default function Home() {
   const [selectType, setSelectType] = useState('Alles');
   const [selectDomein, setSelectDomein] = useState('Alles');
 
+  const t = translations[currentLang] || translations.nl;
+
   const fetchWaypoints = useCallback(async () => {
     const { data, error } = await supabase
       .from('waypoints')
@@ -41,7 +44,7 @@ export default function Home() {
     fetchWaypoints();
   }, [fetchWaypoints]);
 
-  const alleTypes = ['Alles', ...Array.from(new Set(waypoints.map(w => w.type).filter(Boolean)))];
+  const alleTypes = [t.search.all, ...Array.from(new Set(waypoints.map(w => w.type).filter(Boolean)))];
   
   const alleDomeinenSet = new Set();
   waypoints.forEach(w => {
@@ -49,7 +52,7 @@ export default function Home() {
       w.domeinen.forEach(d => alleDomeinenSet.add(d));
     }
   });
-  const alleDomeinen = ['Alles', ...Array.from(alleDomeinenSet)];
+  const alleDomeinen = [t.search.all, ...Array.from(alleDomeinenSet)];
 
   const gefilterdeWaypoints = waypoints.filter((item) => {
     const zoek = zoekterm.toLowerCase();
@@ -61,9 +64,9 @@ export default function Home() {
       (item.description && item.description.toLowerCase().includes(zoek)) ||
       (item.contact && item.contact.toLowerCase().includes(zoek));
 
-    const matchType = selectType === 'Alles' || item.type === selectType;
+    const matchType = selectType === t.search.all || selectType === 'Alles' || item.type === selectType;
 
-    const matchDomein = selectDomein === 'Alles' || 
+    const matchDomein = selectDomein === t.search.all || selectDomein === 'Alles' || 
       (Array.isArray(item.domeinen) && item.domeinen.includes(selectDomein));
 
     return matchZoekterm && matchType && matchDomein;
@@ -72,14 +75,14 @@ export default function Home() {
   return (
     <main className="min-h-screen p-4 md:p-8 bg-slate-50 text-slate-800">
       <div className="max-w-6xl mx-auto">
-        {/* Header met titel en Taalschakelaar */}
+        {/* Header met vertaalde titel, ondertitel en Taalschakelaar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">
-              Interactief Kaart- en Kennisplatform
+              {t.headerTitle}
             </h1>
             <p className="text-slate-600 mt-1">
-              Ontdek locaties en kennispunten op de interactieve wereldkaart.
+              {t.headerSubtitle}
             </p>
           </div>
           <div className="self-start sm:self-center">
@@ -90,16 +93,16 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Inzendformulier met gekozen taal */}
+        {/* Inzendformulier */}
         <AddWaypointForm onWaypointAdded={fetchWaypoints} currentLang={currentLang} />
 
-        {/* Filtersectie */}
+        {/* Vertaalde Filtersectie */}
         <div className="mb-6 p-4 bg-white rounded-lg border border-slate-200 shadow-sm grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Zoeken</label>
+            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.label}</label>
             <input
               type="text"
-              placeholder="Zoek op naam of gemeente..."
+              placeholder={t.search.placeholder}
               value={zoekterm}
               onChange={(e) => setZoekterm(e.target.value)}
               className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -107,7 +110,7 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Type</label>
+            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.typeLabel}</label>
             <select
               value={selectType}
               onChange={(e) => setSelectType(e.target.value)}
@@ -120,7 +123,7 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Domein</label>
+            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.domainLabel}</label>
             <select
               value={selectDomein}
               onChange={(e) => setSelectDomein(e.target.value)}
@@ -139,17 +142,17 @@ export default function Home() {
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-slate-900">Overzicht Waypoints</h2>
+          <h2 className="text-2xl font-bold text-slate-900">{t.search.overviewTitle}</h2>
           <span className="text-sm text-slate-500 font-medium">
-            {gefilterdeWaypoints.length} van de {waypoints.length} getoond
+            {gefilterdeWaypoints.length} {t.search.shown} {waypoints.length} {t.search.shownEnd}
           </span>
         </div>
 
         {loading ? (
-          <p className="text-gray-500">Gegevens laden uit database...</p>
+          <p className="text-gray-500">{t.search.loading}</p>
         ) : gefilterdeWaypoints.length === 0 ? (
           <p className="text-amber-600 bg-amber-50 p-4 rounded-lg border border-amber-200">
-            Geen waypoints gevonden die voldoen aan je zoekcriteria.
+            {t.search.noResults}
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
@@ -161,6 +164,11 @@ export default function Home() {
                 <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
                 <p className="text-sm text-slate-500 mb-2">Type: {item.type} | Gemeente: {item.gemeente}</p>
                 <p className="text-sm mb-2">Contact: {item.contact}</p>
+                {item.description && (
+                  <p className="text-sm text-slate-600 my-2 italic bg-slate-50 p-2 rounded border border-slate-100">
+                    "{item.description}"
+                  </p>
+                )}
                 {item.domeinen && item.domeinen.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-3">
                     {item.domeinen.map((domein, index) => (

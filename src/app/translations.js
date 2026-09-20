@@ -1,5 +1,19 @@
 export const translations = {
   nl: {
+    headerTitle: "Interactief Kaart- en Kennisplatform",
+    headerSubtitle: "Ontdek locaties en kennispunten op de interactieve wereldkaart.",
+    search: {
+      label: "Zoeken",
+      placeholder: "Zoek op naam, adres of gemeente...",
+      typeLabel: "Type",
+      domainLabel: "Domein",
+      all: "Alles",
+      overviewTitle: "Overzicht Waypoints",
+      shown: "van de",
+      shownEnd: "getoond",
+      noResults: "Geen waypoints gevonden die voldoen aan je zoekcriteria.",
+      loading: "Gegevens laden uit database..."
+    },
     title: "Nieuw Waypoint Aanmelden",
     subtitle: "Ken je een initiatief of kennispunt? Voeg het toe aan de kaart.",
     addButton: "+ Locatie Toevoegen",
@@ -32,6 +46,20 @@ export const translations = {
     }
   },
   en: {
+    headerTitle: "Interactive Map & Knowledge Platform",
+    headerSubtitle: "Discover locations and knowledge points on the interactive world map.",
+    search: {
+      label: "Search",
+      placeholder: "Search by name, address or city...",
+      typeLabel: "Type",
+      domainLabel: "Domain",
+      all: "All",
+      overviewTitle: "Waypoints Overview",
+      shown: "of",
+      shownEnd: "shown",
+      noResults: "No waypoints found matching your search criteria.",
+      loading: "Loading data from database..."
+    },
     title: "Submit New Waypoint",
     subtitle: "Do you know an initiative or knowledge point? Add it to the map.",
     addButton: "+ Add Location",
@@ -64,6 +92,20 @@ export const translations = {
     }
   },
   fr: {
+    headerTitle: "Plateforme interactive de cartographie et de connaissances",
+    headerSubtitle: "Découvrez des lieux et des points de connaissance sur la carte interactive.",
+    search: {
+      label: "Rechercher",
+      placeholder: "Rechercher par nom, adresse ou ville...",
+      typeLabel: "Type",
+      domainLabel: "Domaine",
+      all: "Tous",
+      overviewTitle: "Aperçu des points",
+      shown: "sur",
+      shownEnd: "affichés",
+      noResults: "Aucun point trouvé correspondant à vos critères de recherche.",
+      loading: "Chargement des données..."
+    },
     title: "Proposer un nouveau point",
     subtitle: "Vous connaissez une initiative ou un point de connaissance ? Ajoutez-le à la carte.",
     addButton: "+ Ajouter un lieu",
