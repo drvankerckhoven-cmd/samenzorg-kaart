@@ -42,7 +42,7 @@ export default function Map({ waypoints }) {
             >
               {/* Tooltip verschijnt automatisch bij het hoveren over de speld */}
               <Tooltip direction="top" offset={[0, -30]} opacity={0.95}>
-                <div className="max-w-xs p-1">
+                <div className="w-80 sm:w-96 p-1">
                   <strong className="block text-slate-900 text-sm font-bold">{item.naam}</strong>
                   {item.description && (
                     <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap">
