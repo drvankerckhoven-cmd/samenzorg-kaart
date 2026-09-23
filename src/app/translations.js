@@ -136,5 +136,51 @@ export const translations = {
       success: "Merci ! Votre proposition a bien été reçue et sera examinée par l'administrateur.",
       error: "Une erreur est survenue lors de l'envoi."
     }
+  },
+  de: {
+    headerTitle: "Interaktive Karten- und Wissensplattform",
+    headerSubtitle: "Entdecken Sie Orte und Wissenspunkte auf der interaktiven Weltkarte.",
+    search: {
+      label: "Suchen",
+      placeholder: "Suche nach Name, Adresse oder Stadt...",
+      typeLabel: "Typ",
+      domainLabel: "Bereich",
+      all: "Alle",
+      overviewTitle: "Übersicht der Wegpunkte",
+      shown: "von",
+      shownEnd: "angezeigt",
+      noResults: "Keine Wegpunkte gefunden, die Ihren Suchkriterien entsprechen.",
+      loading: "Daten werden aus der Datenbank geladen..."
+    },
+    title: "Neuen Wegpunkt anmelden",
+    subtitle: "Kennen Sie eine Initiative oder einen Wissenspunkt? Füge ihn zur Karte hinzu.",
+    addButton: "+ Ort hinzufügen",
+    closeButton: "Schließen",
+    form: {
+      name: "Name der Initiative / des Wissenspunkts *",
+      namePlaceholder: "z.B. Ernährungswald Die Eiche",
+      type: "Typ *",
+      types: {
+        initiatief: "Initiative",
+        kennispunt: "Wissenspunkt",
+        expert: "Experte",
+        samenwerkingsverband: "Partnerschaft"
+      },
+      address: "Straße + Hausnummer",
+      addressPlaceholder: "z.B. Hauptstraße 1",
+      city: "Gemeinde / Stadt *",
+      cityPlaceholder: "z.B. Antwerpen",
+      contact: "Kontakt / Website",
+      contactPlaceholder: "z.B. info@beispiel.de oder https://...",
+      domains: "Bereiche / Themen (durch Kommas getrennt)",
+      domainsPlaceholder: "z.B. Ökologie, Permakultur, Bildung",
+      description: "Kurzbeschreibung (max. 300 Zeichen)",
+      descriptionPlaceholder: "Schreiben Sie hier eine kurze Beschreibung...",
+      charsLeft: "Zeichen übrig",
+      submit: "Zur Genehmigung einreichen",
+      submitting: "Adresse suchen & senden...",
+      success: "Vielen Dank! Ihre Einreichung ist eingegangen und wird vom Administrator überprüft.",
+      error: "Beim Senden ist ein Fehler aufgetreten."
+    }
   }
 };

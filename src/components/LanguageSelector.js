@@ -4,7 +4,8 @@ export default function LanguageSelector({ currentLang, onLanguageChange }) {
   const languages = [
     { code: 'nl', label: 'NL' },
     { code: 'en', label: 'EN' },
-    { code: 'fr', label: 'FR' }
+    { code: 'fr', label: 'FR' },
+    { code: 'de', label: 'DE' }
   ];
 
   return (
