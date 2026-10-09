@@ -62,7 +62,9 @@ export default function Home() {
       (item.gemeente && item.gemeente.toLowerCase().includes(zoek)) ||
       (item.adres && item.adres.toLowerCase().includes(zoek)) ||
       (item.description && item.description.toLowerCase().includes(zoek)) ||
-      (item.contact && item.contact.toLowerCase().includes(zoek));
+      (item.contact && item.contact.toLowerCase().includes(zoek)) ||
+      (item.email && item.email.toLowerCase().includes(zoek)) ||
+      (item.website && item.website.toLowerCase().includes(zoek));
 
     const matchType = selectType === t.search.all || selectType === 'Alles' || item.type === selectType;
 
@@ -162,8 +164,12 @@ export default function Home() {
                   {item.status}
                 </span>
                 <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
-                <p className="text-sm text-slate-500 mb-2">Type: {item.type} | Gemeente: {item.gemeente}</p>
-                <p className="text-sm mb-2">Contact: {item.contact}</p>
+                <p className="text-sm text-slate-500 mb-1">Type: {item.type} | Gemeente: {item.gemeente}</p>
+                
+                {item.contact && <p className="text-sm text-slate-700">Contact: {item.contact}</p>}
+                {item.email && <p className="text-sm text-slate-700">E-mail: <a href={`mailto:${item.email}`} className="text-emerald-600 underline">{item.email}</a></p>}
+                {item.website && <p className="text-sm text-slate-700">Website: <a href={item.website.startsWith('http') ? item.website : `https://${item.website}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 underline">{item.website}</a></p>}
+
                 {item.description && (
                   <p className="text-sm text-slate-600 my-2 italic bg-slate-50 p-2 rounded border border-slate-100">
                     "{item.description}"
