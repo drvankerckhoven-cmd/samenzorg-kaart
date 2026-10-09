@@ -17,6 +17,8 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     adres: '',
     gemeente: '',
     contact: '',
+    email: '',
+    website: '',
     description: '',
     domeinenText: ''
   });
@@ -57,12 +59,14 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       .map(d => d.trim())
       .filter(Boolean);
 
-    // 3. Opslaan in Supabase (de veldnamen in de DB blijven in het Nederlands)
+    // 3. Opslaan in Supabase
     const nieuwWaypoint = {
       naam: formData.naam,
       type: formData.type,
       gemeente: formData.gemeente + (formData.adres ? ` (${formData.adres})` : ''),
       contact: formData.contact,
+      email: formData.email,
+      website: formData.website,
       description: formData.description,
       domeinen: domeinenArray,
       latitude: gevondenLat,
@@ -86,6 +90,8 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
         adres: '',
         gemeente: '',
         contact: '',
+        email: '',
+        website: '',
         description: '',
         domeinenText: ''
       });
@@ -182,6 +188,30 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
               value={formData.contact}
               onChange={handleChange}
               placeholder={t.form.contactPlaceholder}
+              className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.email}</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder={t.form.emailPlaceholder}
+              className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.website}</label>
+            <input
+              type="url"
+              name="website"
+              value={formData.website}
+              onChange={handleChange}
+              placeholder={t.form.websitePlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
