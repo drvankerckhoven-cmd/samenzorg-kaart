@@ -120,46 +120,50 @@ export default function Home() {
         <AddWaypointForm onWaypointAdded={fetchWaypoints} currentLang={currentLang} />
 
         {/* Vertaalde Filtersectie */}
-        <div className="mb-6 p-4 bg-white rounded-lg border border-slate-200 shadow-sm grid gap-4 md:grid-cols-3">
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.label}</label>
-            <input
-              type="text"
-              placeholder={t.search.placeholder}
-              value={zoekterm}
-              onChange={(e) => setZoekterm(e.target.value)}
-              className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+        <div className="mb-6 p-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col gap-4">
+          
+          {/* Bovenste rij filters: Zoekbalk, Type & Domein */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.label}</label>
+              <input
+                type="text"
+                placeholder={t.search.placeholder}
+                value={zoekterm}
+                onChange={(e) => setZoekterm(e.target.value)}
+                className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.typeLabel}</label>
+              <select
+                value={selectType}
+                onChange={(e) => setSelectType(e.target.value)}
+                className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                {alleTypes.map((type, idx) => (
+                  <option key={idx} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.domainLabel}</label>
+              <select
+                value={selectDomein}
+                onChange={(e) => setSelectDomein(e.target.value)}
+                className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                {alleDomeinen.map((domein, idx) => (
+                  <option key={idx} value={domein}>{domein}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.typeLabel}</label>
-            <select
-              value={selectType}
-              onChange={(e) => setSelectType(e.target.value)}
-              className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-            >
-              {alleTypes.map((type, idx) => (
-                <option key={idx} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.domainLabel}</label>
-            <select
-              value={selectDomein}
-              onChange={(e) => setSelectDomein(e.target.value)}
-              className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-            >
-              {alleDomeinen.map((domein, idx) => (
-                <option key={idx} value={domein}>{domein}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Datum-vork filters */}
-          <div className="md:col-span-3 pt-2 border-t border-slate-100 grid gap-4 md:grid-cols-2">
+          {/* Onderste rij: Compacte Datum-vork filters (Van / Tot) direct naast elkaar */}
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
                 📅 {t.search.dateFromLabel}
@@ -168,9 +172,10 @@ export default function Home() {
                 type="date"
                 value={datumVan}
                 onChange={(e) => setDatumVan(e.target.value)}
-                className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
               />
             </div>
+
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
                 📅 {t.search.dateToLabel}
@@ -179,10 +184,11 @@ export default function Home() {
                 type="date"
                 value={datumTot}
                 onChange={(e) => setDatumTot(e.target.value)}
-                className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
               />
             </div>
           </div>
+
         </div>
 
         {/* Vinkje voor het tonen van rode bolletjes (regionale locaties) */}
