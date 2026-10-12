@@ -25,6 +25,10 @@ export default function Home() {
   const [selectType, setSelectType] = useState('Alles');
   const [selectDomein, setSelectDomein] = useState('Alles');
 
+  // Datum filters
+  const [datumVan, setDatumVan] = useState('');
+  const [datumTot, setDatumTot] = useState('');
+
   // Vinkje voor wel/niet tonen van regionale locaties
   const [toonRegionaal, setToonRegionaal] = useState(false);
 
@@ -57,7 +61,7 @@ export default function Home() {
   });
   const alleDomeinen = [t.search.all, ...Array.from(alleDomeinenSet)];
 
-  // Gefilterde lijst op basis van zoekbalk & dropdowns
+  // Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
   const gefilterdeWaypoints = waypoints.filter((item) => {
     const zoek = zoekterm.toLowerCase();
 
@@ -75,13 +79,20 @@ export default function Home() {
     const matchDomein = selectDomein === t.search.all || selectDomein === 'Alles' || 
       (Array.isArray(item.domeinen) && item.domeinen.includes(selectDomein));
 
-    return matchZoekterm && matchType && matchDomein;
+    // Datum filteren voor activiteiten
+    let matchDatum = true;
+    if (item.type === 'Activiteit' && item.event_date) {
+      if (datumVan && item.event_date < datumVan) matchDatum = false;
+      if (datumTot && item.event_date > datumTot) matchDatum = false;
+    }
+
+    return matchZoekterm && matchType && matchDomein && matchDatum;
   });
 
-  // Gefilterde lijst specifiek voor de KAART (afhankelijk van het vinkje voor regionale locaties)
+  // Gefilterde lijst specifiek voor de KAART
   const kaartWaypoints = gefilterdeWaypoints.filter(item => {
-    if (toonRegionaal) return true; // Toon alles
-    return item.is_exact !== false; // Toon alleen exacte adressen
+    if (toonRegionaal) return true;
+    return item.is_exact !== false;
   });
 
   return (
@@ -146,6 +157,32 @@ export default function Home() {
               ))}
             </select>
           </div>
+
+          {/* Datum-vork filters */}
+          <div className="md:col-span-3 pt-2 border-t border-slate-100 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
+                📅 {t.search.dateFromLabel}
+              </label>
+              <input
+                type="date"
+                value={datumVan}
+                onChange={(e) => setDatumVan(e.target.value)}
+                className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
+                📅 {t.search.dateToLabel}
+              </label>
+              <input
+                type="date"
+                value={datumTot}
+                onChange={(e) => setDatumTot(e.target.value)}
+                className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Vinkje voor het tonen van rode bolletjes (regionale locaties) */}
@@ -186,7 +223,15 @@ export default function Home() {
           <div className="grid gap-4 md:grid-cols-2">
             {gefilterdeWaypoints.map((item) => (
               <div key={item.id} className="p-5 bg-white rounded-lg shadow border border-slate-200">
-                <h3 className="text-xl font-bold text-slate-900 mb-1">{item.naam}</h3>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
+                  {item.type === 'Activiteit' && item.event_date && (
+                    <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded border border-amber-200">
+                      📅 {new Date(item.event_date).toLocaleDateString(currentLang === 'nl' ? 'nl-BE' : currentLang, { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
+
                 <p className="text-sm text-slate-500 mb-2">Type: {item.type} | Gemeente: {item.gemeente}</p>
                 
                 {item.contact && <p className="text-sm text-slate-700">Contact: {item.contact}</p>}

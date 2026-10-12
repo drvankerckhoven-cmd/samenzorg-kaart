@@ -14,6 +14,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
   const [formData, setFormData] = useState({
     naam: '',
     type: 'Initiatief',
+    event_date: '',
     adres: '',
     gemeente: '',
     contact: '',
@@ -37,7 +38,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     let isExactAdres = false;
 
     // 1. Coördinaten opzoeken via OpenStreetMap & bepalen of het een exact adres is
-    const zoekAdres = `${formData.adres}${formData.gemeente}`.trim();
+    const zoekAdres = `${formData.adres} ${formData.gemeente}`.trim();
 
     if (zoekAdres) {
       try {
@@ -51,14 +52,13 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
           gevondenLat = parseFloat(besteResultaat.lat);
           gevondenLng = parseFloat(besteResultaat.lon);
 
-          // Controleer of het een specifiek gebouw/huisnummer betreft
           const addresstype = besteResultaat.addresstype || besteResultaat.type;
           const heeftHuisnummer = besteResultaat.address && (besteResultaat.address.house_number || besteResultaat.address.building);
           
           if (heeftHuisnummer || ['house', 'building', 'residential', 'premise'].includes(addresstype)) {
             isExactAdres = true;
           } else {
-            isExactAdres = false; // Stad, gemeente, regio of straat zonder specifiek huisnummer
+            isExactAdres = false;
           }
         }
       } catch (err) {
@@ -76,6 +76,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     const nieuwWaypoint = {
       naam: formData.naam,
       type: formData.type,
+      event_date: formData.type === 'Activiteit' ? (formData.event_date || null) : null,
       gemeente: formData.gemeente + (formData.adres ? ` (${formData.adres})` : ''),
       contact: formData.contact,
       email: formData.email,
@@ -101,6 +102,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       setFormData({
         naam: '',
         type: 'Initiatief',
+        event_date: '',
         adres: '',
         gemeente: '',
         contact: '',
@@ -166,8 +168,26 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
               <option value="Kennispunt">{t.form.types.kennispunt}</option>
               <option value="Expert">{t.form.types.expert}</option>
               <option value="Samenwerkingsverband">{t.form.types.samenwerkingsverband}</option>
+              <option value="Activiteit">{t.form.types.activiteit}</option>
             </select>
           </div>
+
+          {/* Veld verschijnt ENKEL als het Type "Activiteit" is */}
+          {formData.type === 'Activiteit' && (
+            <div className="md:col-span-2 bg-amber-50 p-3 rounded border border-amber-200">
+              <label className="block text-xs font-semibold text-amber-900 uppercase mb-1">
+                📅 {t.form.eventDate}
+              </label>
+              <input
+                type="date"
+                name="event_date"
+                required
+                value={formData.event_date}
+                onChange={handleChange}
+                className="w-full md:w-1/2 p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.address}</label>

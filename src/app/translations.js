@@ -1,12 +1,14 @@
 export const translations = {
   nl: {
     headerTitle: "Interactief Kaart- en Kennisplatform",
-    headerSubtitle: "Ontdek locaties en kennispunten op de interactieve wereldkaart.",
+    headerSubtitle: "Ontdek locaties, kennispunten en activiteiten op de interactieve wereldkaart.",
     search: {
       label: "Zoeken",
       placeholder: "Zoek op naam, adres, gemeente, e-mail...",
       typeLabel: "Type",
       domainLabel: "Domein",
+      dateFromLabel: "Van datum",
+      dateToLabel: "Tot datum",
       all: "Alles",
       overviewTitle: "Overzicht Waypoints",
       shown: "van de",
@@ -14,20 +16,22 @@ export const translations = {
       noResults: "Geen waypoints gevonden die voldoen aan je zoekcriteria.",
       loading: "Gegevens laden uit database..."
     },
-    title: "Nieuw Waypoint Aanmelden",
-    subtitle: "Ken je een initiatief of kennispunt? Voeg het toe aan de kaart.",
-    addButton: "+ Locatie Toevoegen",
+    title: "Nieuwe Locatie of Activiteit Aanmelden",
+    subtitle: "Ken je een initiatief, kennispunt of activiteit? Voeg het toe aan de kaart.",
+    addButton: "+ Locatie / Activiteit Toevoegen",
     closeButton: "Sluiten",
     form: {
-      name: "Naam van Initiatief / Kennispunt *",
-      namePlaceholder: "bijv. Voedselbos De Eik",
+      name: "Naam van Initiatief / Activiteit *",
+      namePlaceholder: "bijv. Opendeurdag De Eik of Voedselbos De Eik",
       type: "Type *",
       types: {
         initiatief: "Initiatief",
         kennispunt: "Kennispunt",
         expert: "Expert",
-        samenwerkingsverband: "Samenwerkingsverband"
+        samenwerkingsverband: "Samenwerkingsverband",
+        activiteit: "Activiteit"
       },
+      eventDate: "Datum van Activiteit *",
       address: "Straat + Huisnummer",
       addressPlaceholder: "bijv. Grote Markt 1",
       city: "Gemeente / Stad *",
@@ -51,12 +55,14 @@ export const translations = {
   },
   en: {
     headerTitle: "Interactive Map & Knowledge Platform",
-    headerSubtitle: "Discover locations and knowledge points on the interactive world map.",
+    headerSubtitle: "Discover locations, knowledge points and activities on the interactive world map.",
     search: {
       label: "Search",
       placeholder: "Search by name, address, city, email...",
       typeLabel: "Type",
       domainLabel: "Domain",
+      dateFromLabel: "From date",
+      dateToLabel: "To date",
       all: "All",
       overviewTitle: "Waypoints Overview",
       shown: "of",
@@ -64,20 +70,22 @@ export const translations = {
       noResults: "No waypoints found matching your search criteria.",
       loading: "Loading data from database..."
     },
-    title: "Submit New Waypoint",
-    subtitle: "Do you know an initiative or knowledge point? Add it to the map.",
-    addButton: "+ Add Location",
+    title: "Submit New Location or Activity",
+    subtitle: "Do you know an initiative, knowledge point or activity? Add it to the map.",
+    addButton: "+ Add Location / Activity",
     closeButton: "Close",
     form: {
-      name: "Name of Initiative / Knowledge Point *",
-      namePlaceholder: "e.g. Food Forest The Oak",
+      name: "Name of Initiative / Activity *",
+      namePlaceholder: "e.g. Open Day The Oak or Food Forest The Oak",
       type: "Type *",
       types: {
         initiatief: "Initiative",
         kennispunt: "Knowledge Point",
         expert: "Expert",
-        samenwerkingsverband: "Partnership"
+        samenwerkingsverband: "Partnership",
+        activiteit: "Activity"
       },
+      eventDate: "Date of Activity *",
       address: "Street + House Number",
       addressPlaceholder: "e.g. Main Street 1",
       city: "Municipality / City *",
@@ -101,12 +109,14 @@ export const translations = {
   },
   fr: {
     headerTitle: "Plateforme interactive de cartographie et de connaissances",
-    headerSubtitle: "Découvrez des lieux et des points de connaissance sur la carte interactive.",
+    headerSubtitle: "Découvrez des lieux, des points de connaissance et des activités sur la carte.",
     search: {
       label: "Rechercher",
       placeholder: "Rechercher par nom, adresse, ville, e-mail...",
       typeLabel: "Type",
       domainLabel: "Domaine",
+      dateFromLabel: "Du",
+      dateToLabel: "Au",
       all: "Tous",
       overviewTitle: "Aperçu des points",
       shown: "sur",
@@ -114,20 +124,22 @@ export const translations = {
       noResults: "Aucun point trouvé correspondant à vos critères de recherche.",
       loading: "Chargement des données..."
     },
-    title: "Proposer un nouveau point",
-    subtitle: "Vous connaissez une initiative ou un point de connaissance ? Ajoutez-le à la carte.",
-    addButton: "+ Ajouter un lieu",
+    title: "Proposer un nouveau lieu ou une activité",
+    subtitle: "Vous connaissez une initiative, un point de connaissance ou une activité ? Ajoutez-le à la carte.",
+    addButton: "+ Ajouter un lieu / une activité",
     closeButton: "Fermer",
     form: {
-      name: "Nom de l'initiative / point de connaissance *",
-      namePlaceholder: "ex. Forêt nourricière Le Chêne",
+      name: "Nom de l'initiative / activité *",
+      namePlaceholder: "ex. Journée portes ouvertes Le Chêne",
       type: "Type *",
       types: {
         initiatief: "Initiative",
         kennispunt: "Point de connaissance",
         expert: "Expert",
-        samenwerkingsverband: "Partenariat"
+        samenwerkingsverband: "Partenariat",
+        activiteit: "Activité"
       },
+      eventDate: "Date de l'activité *",
       address: "Rue + Numéro",
       addressPlaceholder: "ex. Rue de la Loi 1",
       city: "Commune / Ville *",
@@ -151,12 +163,14 @@ export const translations = {
   },
   de: {
     headerTitle: "Interaktive Karten- und Wissensplattform",
-    headerSubtitle: "Entdecken Sie Orte und Wissenspunkte auf der interaktiven Weltkarte.",
+    headerSubtitle: "Entdecken Sie Orte, Wissenspunkte und Aktivitäten auf der Karte.",
     search: {
       label: "Suchen",
       placeholder: "Suche nach Name, Adresse, Stadt, E-Mail...",
       typeLabel: "Typ",
       domainLabel: "Bereich",
+      dateFromLabel: "Von Datum",
+      dateToLabel: "Bis Datum",
       all: "Alle",
       overviewTitle: "Übersicht der Wegpunkte",
       shown: "von",
@@ -164,20 +178,22 @@ export const translations = {
       noResults: "Keine Wegpunkte gefunden, die Ihren Suchkriterien entsprechen.",
       loading: "Daten werden aus der Datenbank geladen..."
     },
-    title: "Neuen Wegpunkt anmelden",
-    subtitle: "Kennen Sie eine Initiative oder einen Wissenspunkt? Füge ihn zur Karte hinzu.",
-    addButton: "+ Ort hinzufügen",
+    title: "Neuen Ort oder Aktivität anmelden",
+    subtitle: "Kennen Sie eine Initiative, einen Wissenspunkt oder eine Aktivität? Füge ihn zur Karte hinzu.",
+    addButton: "+ Ort / Aktivität hinzufügen",
     closeButton: "Schließen",
     form: {
-      name: "Name der Initiative / des Wissenspunkts *",
-      namePlaceholder: "z.B. Ernährungswald Die Eiche",
+      name: "Name der Initiative / Aktivität *",
+      namePlaceholder: "z.B. Tag der offenen Tür Die Eiche",
       type: "Typ *",
       types: {
         initiatief: "Initiative",
         kennispunt: "Wissenspunkt",
         expert: "Experte",
-        samenwerkingsverband: "Partnerschaft"
+        samenwerkingsverband: "Partnerschaft",
+        activiteit: "Aktivität"
       },
+      eventDate: "Datum der Aktivität *",
       address: "Straße + Hausnummer",
       addressPlaceholder: "z.B. Hauptstraße 1",
       city: "Gemeinde / Stadt *",
