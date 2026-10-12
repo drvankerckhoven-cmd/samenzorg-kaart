@@ -34,19 +34,32 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
     let gevondenLat = null;
     let gevondenLng = null;
+    let isExactAdres = false;
 
-    // 1. Coördinaten opzoeken via OpenStreetMap
-    const zoekAdres = `${formData.adres} ${formData.gemeente}`.trim();
+    // 1. Coördinaten opzoeken via OpenStreetMap & bepalen of het een exact adres is
+    const zoekAdres = `${formData.adres}${formData.gemeente}`.trim();
+
     if (zoekAdres) {
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(zoekAdres)}`
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(zoekAdres)}`
         );
         const resultaten = await response.json();
 
         if (resultaten && resultaten.length > 0) {
-          gevondenLat = parseFloat(resultaten[0].lat);
-          gevondenLng = parseFloat(resultaten[0].lon);
+          const besteResultaat = resultaten[0];
+          gevondenLat = parseFloat(besteResultaat.lat);
+          gevondenLng = parseFloat(besteResultaat.lon);
+
+          // Controleer of het een specifiek gebouw/huisnummer betreft
+          const addresstype = besteResultaat.addresstype || besteResultaat.type;
+          const heeftHuisnummer = besteResultaat.address && (besteResultaat.address.house_number || besteResultaat.address.building);
+          
+          if (heeftHuisnummer || ['house', 'building', 'residential', 'premise'].includes(addresstype)) {
+            isExactAdres = true;
+          } else {
+            isExactAdres = false; // Stad, gemeente, regio of straat zonder specifiek huisnummer
+          }
         }
       } catch (err) {
         console.warn('Geocoding kon geen coördinaten ophalen:', err);
@@ -71,6 +84,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       domeinen: domeinenArray,
       latitude: gevondenLat,
       longitude: gevondenLng,
+      is_exact: isExactAdres,
       status: 'In afwachting'
     };
 

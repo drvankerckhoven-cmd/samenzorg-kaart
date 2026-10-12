@@ -25,6 +25,9 @@ export default function Home() {
   const [selectType, setSelectType] = useState('Alles');
   const [selectDomein, setSelectDomein] = useState('Alles');
 
+  // Vinkje voor wel/niet tonen van regionale locaties
+  const [toonRegionaal, setToonRegionaal] = useState(false);
+
   const t = translations[currentLang] || translations.nl;
 
   const fetchWaypoints = useCallback(async () => {
@@ -54,6 +57,7 @@ export default function Home() {
   });
   const alleDomeinen = [t.search.all, ...Array.from(alleDomeinenSet)];
 
+  // Gefilterde lijst op basis van zoekbalk & dropdowns
   const gefilterdeWaypoints = waypoints.filter((item) => {
     const zoek = zoekterm.toLowerCase();
 
@@ -72,6 +76,12 @@ export default function Home() {
       (Array.isArray(item.domeinen) && item.domeinen.includes(selectDomein));
 
     return matchZoekterm && matchType && matchDomein;
+  });
+
+  // Gefilterde lijst specifiek voor de KAART (afhankelijk van het vinkje voor regionale locaties)
+  const kaartWaypoints = gefilterdeWaypoints.filter(item => {
+    if (toonRegionaal) return true; // Toon alles
+    return item.is_exact !== false; // Toon alleen exacte adressen
   });
 
   return (
@@ -138,9 +148,25 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Vinkje voor het tonen van rode bolletjes (regionale locaties) */}
+        <div className="flex items-center justify-between mb-3 px-1">
+          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={toonRegionaal}
+              onChange={(e) => setToonRegionaal(e.target.checked)}
+              className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+            />
+            <span className="flex items-center gap-1.5 font-medium">
+              Toon ook regionale locaties zonder exact adres 
+              <span className="inline-block w-3.5 h-3.5 rounded-full bg-rose-500 border border-white shadow-sm ml-1" title="Rode bolletjes op de kaart"></span>
+            </span>
+          </label>
+        </div>
+
         {/* Interactieve Kaart */}
         <div className="mb-8">
-          <Map waypoints={gefilterdeWaypoints} />
+          <Map waypoints={kaartWaypoints} />
         </div>
 
         <div className="flex items-center justify-between mb-4">

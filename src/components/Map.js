@@ -1,31 +1,37 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Zorg ervoor dat de standaard Leaflet marker-icoontjes goed geladen worden
-const customIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+// Standaard blauwe speld voor exacte locaties
+const exactIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
 
+// Rood bolletje voor regionale / ongeveere locaties
+const regionalIcon = L.divIcon({
+  className: 'custom-regional-marker',
+  html: `<div style="background-color: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.4);"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8]
+});
+
 export default function Map({ waypoints }) {
-  // Standaard startpunt ingesteld op centraal Vlaanderen (51.0, 4.35)
+  // Standaard centrum van Vlaanderen / België
   const defaultCenter = [51.0, 4.35];
-  const defaultZoom = 9;
 
   return (
-    <div className="w-full h-[500px] rounded-lg overflow-hidden border border-slate-300 shadow-md">
+    <div className="w-full h-[500px] rounded-lg overflow-hidden border border-slate-200 shadow-sm relative z-0">
       <MapContainer 
         center={defaultCenter} 
-        zoom={defaultZoom} 
-        scrollWheelZoom={true} 
+        zoom={8} 
+        scrollWheelZoom={false} 
         className="w-full h-full"
       >
         <TileLayer
@@ -33,44 +39,37 @@ export default function Map({ waypoints }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {waypoints.map((item) => (
-          item.latitude && item.longitude ? (
+        {waypoints.map((item) => {
+          if (!item.latitude || !item.longitude) return null;
+
+          const isExact = item.is_exact !== false; // Standaard true als leeg
+
+          return (
             <Marker 
               key={item.id} 
-              position={[item.latitude, item.longitude]} 
-              icon={customIcon}
+              position={[item.latitude, item.longitude]}
+              icon={isExact ? exactIcon : regionalIcon}
             >
-              {/* Tooltip verschijnt automatisch bij het hoveren over de speld */}
-              <Tooltip direction="top" offset={[0, -30]} opacity={0.95}>
+              <Tooltip direction="top" offset={isExact ? [0, -30] : [0, -10]} opacity={0.95}>
                 <div className="w-80 sm:w-96 p-1">
-                  <strong className="block text-slate-900 text-sm font-bold">{item.naam}</strong>
+                  <div className="flex items-center gap-2 mb-1">
+                    <strong className="block text-slate-900 text-sm font-bold">{item.naam}</strong>
+                    {!isExact && (
+                      <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-semibold">
+                        Regionale locatie
+                      </span>
+                    )}
+                  </div>
                   {item.description && (
-                    <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap">
+                    <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap leading-relaxed">
                       {item.description}
                     </p>
                   )}
                 </div>
               </Tooltip>
-
-              {/* Popup opent bij een klik op de speld */}
-              <Popup>
-                <div className="p-1">
-                  <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded">
-                    {item.status}
-                  </span>
-                  <h3 className="font-bold text-base mt-1 text-slate-900">{item.naam}</h3>
-                  <p className="text-xs text-slate-600 mb-1">{item.type} &bull; {item.gemeente}</p>
-                  {item.description && (
-                    <p className="text-xs text-slate-700 my-2 italic bg-slate-50 p-2 rounded border border-slate-100">
-                      "{item.description}"
-                    </p>
-                  )}
-                  <p className="text-sm font-medium text-emerald-700">{item.contact}</p>
-                </div>
-              </Popup>
             </Marker>
-          ) : null
-        ))}
+          );
+        })}
       </MapContainer>
     </div>
   );
