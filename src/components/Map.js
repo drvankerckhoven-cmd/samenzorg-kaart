@@ -14,7 +14,7 @@ const exactIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-// Rood bolletje voor regionale / ongeveere locaties
+// Rood bolletje voor regionale / ongeveer locaties
 const regionalIcon = L.divIcon({
   className: 'custom-regional-marker',
   html: `<div style="background-color: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.4);"></div>`,
@@ -23,8 +23,21 @@ const regionalIcon = L.divIcon({
 });
 
 export default function Map({ waypoints }) {
-  // Standaard centrum van Vlaanderen / België
   const defaultCenter = [51.0, 4.35];
+
+  // 1. Filter alle waypoints met geldige coördinaten
+  const geldigeWaypoints = waypoints.filter(w => w.latitude && w.longitude);
+
+  // 2. Groepeer waypoints die exact dezelfde coördinaten delen
+  const gegroepeerdeWaypoints = geldigeWaypoints.reduce((acc, item) => {
+    // Maak een unieke sleutel op basis van lat en lng
+    const key = `${item.latitude.toFixed(5)}_${item.longitude.toFixed(5)}`;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(item);
+    return acc;
+  }, {});
 
   return (
     <div className="w-full h-[500px] rounded-lg overflow-hidden border border-slate-200 shadow-sm relative z-0">
@@ -39,31 +52,47 @@ export default function Map({ waypoints }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {waypoints.map((item) => {
-          if (!item.latitude || !item.longitude) return null;
-
-          const isExact = item.is_exact !== false; // Standaard true als leeg
+        {Object.entries(gegroepeerdeWaypoints).map(([key, items]) => {
+          const eersteItem = items[0];
+          const isMeervoudig = items.length > 1;
+          const isExact = eersteItem.is_exact !== false;
 
           return (
             <Marker 
-              key={item.id} 
-              position={[item.latitude, item.longitude]}
+              key={key} 
+              position={[eersteItem.latitude, eersteItem.longitude]}
               icon={isExact ? exactIcon : regionalIcon}
             >
               <Tooltip direction="top" offset={isExact ? [0, -30] : [0, -10]} opacity={0.95}>
-                <div className="w-80 sm:w-96 p-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <strong className="block text-slate-900 text-sm font-bold">{item.naam}</strong>
-                    {!isExact && (
-                      <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-semibold">
-                        Regionale locatie
-                      </span>
-                    )}
-                  </div>
-                  {item.description && (
-                    <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap leading-relaxed">
-                      {item.description}
-                    </p>
+                <div className="w-72 sm:w-80 p-1">
+                  {isMeervoudig ? (
+                    <div>
+                      <strong className="block text-slate-900 text-sm font-bold mb-1">
+                        {items.length} initiatieven op deze locatie
+                      </strong>
+                      <p className="text-xs text-slate-600 mb-2">
+                        Regio: <span className="font-semibold">{eersteItem.gemeente}</span>
+                      </p>
+                      <p className="text-xs text-slate-500 italic bg-slate-50 p-2 rounded border border-slate-100">
+                        Bekijk het overzicht onder de kaart voor alle individuele details.
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <strong className="block text-slate-900 text-sm font-bold">{eersteItem.naam}</strong>
+                        {!isExact && (
+                          <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-semibold">
+                            Regionale locatie
+                          </span>
+                        )}
+                      </div>
+                      {eersteItem.description && (
+                        <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap leading-relaxed">
+                          {eersteItem.description}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
               </Tooltip>
