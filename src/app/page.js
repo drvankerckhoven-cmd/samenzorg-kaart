@@ -186,11 +186,8 @@ export default function Home() {
           <div className="grid gap-4 md:grid-cols-2">
             {gefilterdeWaypoints.map((item) => (
               <div key={item.id} className="p-5 bg-white rounded-lg shadow border border-slate-200">
-                <span className="inline-block px-2 py-1 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded mb-2">
-                  {item.status}
-                </span>
-                <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
-                <p className="text-sm text-slate-500 mb-1">Type: {item.type} | Gemeente: {item.gemeente}</p>
+                <h3 className="text-xl font-bold text-slate-900 mb-1">{item.naam}</h3>
+                <p className="text-sm text-slate-500 mb-2">Type: {item.type} | Gemeente: {item.gemeente}</p>
                 
                 {item.contact && <p className="text-sm text-slate-700">Contact: {item.contact}</p>}
                 {item.email && <p className="text-sm text-slate-700">E-mail: <a href={`mailto:${item.email}`} className="text-emerald-600 underline">{item.email}</a></p>}

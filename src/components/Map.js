@@ -30,7 +30,6 @@ export default function Map({ waypoints }) {
 
   // 2. Groepeer waypoints die exact dezelfde coördinaten delen
   const gegroepeerdeWaypoints = geldigeWaypoints.reduce((acc, item) => {
-    // Maak een unieke sleutel op basis van lat en lng
     const key = `${item.latitude.toFixed(5)}_${item.longitude.toFixed(5)}`;
     if (!acc[key]) {
       acc[key] = [];
@@ -64,7 +63,7 @@ export default function Map({ waypoints }) {
               icon={isExact ? exactIcon : regionalIcon}
             >
               <Tooltip direction="top" offset={isExact ? [0, -30] : [0, -10]} opacity={0.95}>
-                <div className="w-72 sm:w-80 p-1">
+                <div className="w-80 sm:w-96 p-2">
                   {isMeervoudig ? (
                     <div>
                       <strong className="block text-slate-900 text-sm font-bold mb-1">
@@ -73,7 +72,7 @@ export default function Map({ waypoints }) {
                       <p className="text-xs text-slate-600 mb-2">
                         Regio: <span className="font-semibold">{eersteItem.gemeente}</span>
                       </p>
-                      <p className="text-xs text-slate-500 italic bg-slate-50 p-2 rounded border border-slate-100">
+                      <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 leading-relaxed">
                         Bekijk het overzicht onder de kaart voor alle individuele details.
                       </p>
                     </div>
