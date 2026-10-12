@@ -184,7 +184,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                 required
                 value={formData.event_date}
                 onChange={handleChange}
-                className="w-full md:w-1/2 p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-48 p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
               />
             </div>
           )}

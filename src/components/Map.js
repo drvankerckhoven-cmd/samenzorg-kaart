@@ -67,7 +67,7 @@ export default function Map({ waypoints }) {
                   {isMeervoudig ? (
                     <div>
                       <strong className="block text-slate-900 text-sm font-bold mb-1">
-                        {items.length} initiatieven op deze locatie
+                        {items.length} initiatieven / activiteiten op deze locatie
                       </strong>
                       <p className="text-xs text-slate-600 mb-2">
                         Regio: <span className="font-semibold">{eersteItem.gemeente}</span>
@@ -78,14 +78,24 @@ export default function Map({ waypoints }) {
                     </div>
                   ) : (
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
                         <strong className="block text-slate-900 text-sm font-bold">{eersteItem.naam}</strong>
                         {!isExact && (
-                          <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-semibold">
+                          <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">
                             Regionale locatie
                           </span>
                         )}
                       </div>
+
+                      {/* Datum tonen indien aanwezig (bij activiteiten) */}
+                      {eersteItem.type === 'Activiteit' && eersteItem.event_date && (
+                        <div className="mb-2">
+                          <span className="inline-block text-xs bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded border border-amber-200">
+                            📅 {new Date(eersteItem.event_date).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </span>
+                        </div>
+                      )}
+
                       {eersteItem.description && (
                         <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap leading-relaxed">
                           {eersteItem.description}
