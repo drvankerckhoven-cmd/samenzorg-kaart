@@ -68,6 +68,7 @@ export default function Home() {
     const matchZoekterm = zoekterm === '' || 
       (item.naam && item.naam.toLowerCase().includes(zoek)) ||
       (item.gemeente && item.gemeente.toLowerCase().includes(zoek)) ||
+      (item.land && item.land.toLowerCase().includes(zoek)) ||
       (item.adres && item.adres.toLowerCase().includes(zoek)) ||
       (item.description && item.description.toLowerCase().includes(zoek)) ||
       (item.contact && item.contact.toLowerCase().includes(zoek)) ||
@@ -162,7 +163,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Onderste rij: Compacte Datum-vork filters (Van / Tot) direct naast elkaar */}
+          {/* Onderste rij: Compacte Datum-vork filters (Van / Tot) */}
           <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
@@ -238,9 +239,11 @@ export default function Home() {
                   )}
                 </div>
 
-                <p className="text-sm text-slate-500 mb-2">Type: {item.type} | Gemeente: {item.gemeente}</p>
+                <p className="text-sm text-slate-500 mb-2">
+                  Type: {item.type} | Locatie: {item.gemeente}{item.land ? `, ${item.land}` : ''}
+                </p>
                 
-                {item.contact && <p className="text-sm text-slate-700">Contact: {item.contact}</p>}
+                {item.contact && <p className="text-sm text-slate-700">Tel: {item.contact}</p>}
                 {item.email && <p className="text-sm text-slate-700">E-mail: <a href={`mailto:${item.email}`} className="text-emerald-600 underline">{item.email}</a></p>}
                 {item.website && <p className="text-sm text-slate-700">Website: <a href={item.website.startsWith('http') ? item.website : `https://${item.website}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 underline">{item.website}</a></p>}
 

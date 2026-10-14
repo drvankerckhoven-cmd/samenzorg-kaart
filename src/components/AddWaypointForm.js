@@ -13,10 +13,11 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
   const [formData, setFormData] = useState({
     naam: '',
-    type: 'Initiatief',
+    type: 'Organisatie / Initiatief',
     event_date: '',
     adres: '',
     gemeente: '',
+    land: 'België',
     contact: '',
     email: '',
     website: '',
@@ -37,8 +38,8 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     let gevondenLng = null;
     let isExactAdres = false;
 
-    // 1. Coördinaten opzoeken via OpenStreetMap & bepalen of het een exact adres is
-    const zoekAdres = `${formData.adres} ${formData.gemeente}`.trim();
+    // 1. Coördinaten opzoeken via OpenStreetMap
+    const zoekAdres = `${formData.adres} ${formData.gemeente} ${formData.land}`.trim();
 
     if (zoekAdres) {
       try {
@@ -72,12 +73,13 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       .map(d => d.trim())
       .filter(Boolean);
 
-    // 3. Opslaan in Supabase
+    // 3. Opslaan in Supabase (oplossen inzendfout: stuur 'null' voor event_date als het geen activiteit is)
     const nieuwWaypoint = {
       naam: formData.naam,
       type: formData.type,
-      event_date: formData.type === 'Activiteit' ? (formData.event_date || null) : null,
+      event_date: formData.type === 'Activiteit' && formData.event_date ? formData.event_date : null,
       gemeente: formData.gemeente + (formData.adres ? ` (${formData.adres})` : ''),
+      land: formData.land || 'België',
       contact: formData.contact,
       email: formData.email,
       website: formData.website,
@@ -92,8 +94,8 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     const { error } = await supabase.from('waypoints').insert([nieuwWaypoint]);
 
     if (error) {
-      console.error('Fout bij verzenden:', JSON.stringify(error, null, 2));
-      setMelding({ type: 'fout', tekst: t.form.error });
+      console.error('Fout bij verzenden (Supabase details):', error);
+      setMelding({ type: 'fout', tekst: `${t.form.error} (${error.message || 'Databasefout'})` });
     } else {
       setMelding({ 
         type: 'succes', 
@@ -101,10 +103,11 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       });
       setFormData({
         naam: '',
-        type: 'Initiatief',
+        type: 'Organisatie / Initiatief',
         event_date: '',
         adres: '',
         gemeente: '',
+        land: 'België',
         contact: '',
         email: '',
         website: '',
@@ -164,10 +167,8 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
               onChange={handleChange}
               className="w-full p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
             >
-              <option value="Initiatief">{t.form.types.initiatief}</option>
-              <option value="Kennispunt">{t.form.types.kennispunt}</option>
-              <option value="Expert">{t.form.types.expert}</option>
-              <option value="Samenwerkingsverband">{t.form.types.samenwerkingsverband}</option>
+              <option value="Zorgverlener">{t.form.types.zorgverlener}</option>
+              <option value="Organisatie / Initiatief">{t.form.types.organisatie}</option>
               <option value="Activiteit">{t.form.types.activiteit}</option>
             </select>
           </div>
@@ -215,13 +216,26 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.contact}</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.country}</label>
+            <input
+              type="text"
+              name="land"
+              required
+              value={formData.land}
+              onChange={handleChange}
+              placeholder={t.form.countryPlaceholder}
+              className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.phone}</label>
             <input
               type="text"
               name="contact"
               value={formData.contact}
               onChange={handleChange}
-              placeholder={t.form.contactPlaceholder}
+              placeholder={t.form.phonePlaceholder}
               className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
             />
           </div>
