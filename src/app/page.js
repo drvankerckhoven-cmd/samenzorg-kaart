@@ -16,6 +16,11 @@ const Map = dynamic(() => import('@/components/Map'), {
   )
 });
 
+// Hulpfunctie voor ISO datum YYYY-MM-DD
+function getIsoDate(d) {
+  return d.toISOString().split('T')[0];
+}
+
 export default function Home() {
   const [currentLang, setCurrentLang] = useState('nl');
   const [waypoints, setWaypoints] = useState([]);
@@ -25,9 +30,13 @@ export default function Home() {
   const [selectType, setSelectType] = useState('Alles');
   const [selectDomein, setSelectDomein] = useState('Alles');
 
-  // Datum filters
-  const [datumVan, setDatumVan] = useState('');
-  const [datumTot, setDatumTot] = useState('');
+  // Standaard datums: Vandaag en Vandaag + 1 Maand
+  const vandaag = new Date();
+  const eenMaandLater = new Date();
+  eenMaandLater.setMonth(vandaag.getMonth() + 1);
+
+  const [datumVan, setDatumVan] = useState(getIsoDate(vandaag));
+  const [datumTot, setDatumTot] = useState(getIsoDate(eenMaandLater));
 
   // Vinkje voor wel/niet tonen van regionale locaties
   const [toonRegionaal, setToonRegionaal] = useState(false);
@@ -163,32 +172,34 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Onderste rij: Compacte Datum-vork filters (Van / Tot) */}
-          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-                📅 {t.search.dateFromLabel}
-              </label>
-              <input
-                type="date"
-                value={datumVan}
-                onChange={(e) => setDatumVan(e.target.value)}
-                className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-              />
-            </div>
+          {/* Onderste rij: Datum-vork filters verschijnen ENKEL als 'Activiteit' is gekozen */}
+          {selectType === 'Activiteit' && (
+            <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4 bg-amber-50/50 p-3 rounded">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-amber-900 mb-1">
+                  📅 {t.search.dateFromLabel}
+                </label>
+                <input
+                  type="date"
+                  value={datumVan}
+                  onChange={(e) => setDatumVan(e.target.value)}
+                  className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-                📅 {t.search.dateToLabel}
-              </label>
-              <input
-                type="date"
-                value={datumTot}
-                onChange={(e) => setDatumTot(e.target.value)}
-                className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-              />
+              <div>
+                <label className="block text-xs font-semibold uppercase text-amber-900 mb-1">
+                  📅 {t.search.dateToLabel}
+                </label>
+                <input
+                  type="date"
+                  value={datumTot}
+                  onChange={(e) => setDatumTot(e.target.value)}
+                  className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
 
