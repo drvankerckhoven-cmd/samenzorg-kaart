@@ -174,7 +174,9 @@ export default function Home() {
                 className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
               >
                 {vasteTypeOpties.map((optie) => (
-                  <option key={optie.key} value={optie.key}>{optie.label}</option>
+                  <option key={optie.key} value={optie.key}>
+                    {optie.label}
+                  </option>
                 ))}
               </select>
             </div>

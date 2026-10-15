@@ -27,7 +27,7 @@ const countryPhoneCodes = [
   { code: '+973', label: '🇧🇭 Bahrein (+973)' },
   { code: '+880', label: '🇧🇩 Bangladesh (+880)' },
   { code: '+375', label: '🇧🇾 Wit-Rusland (+375)' },
-  { code: '+501', label: '🇧🇿 Belize (+501)' },
+  { code: '+501', label: '🇧ℤ Belize (+501)' },
   { code: '+229', label: '🇧🇯 Benin (+229)' },
   { code: '+591', label: '🇧🇴 Bolivia (+591)' },
   { code: '+387', label: '🇧🇦 Bosnië en Herzegovina (+387)' },
@@ -80,7 +80,7 @@ const countryPhoneCodes = [
   { code: '+373', label: '🇲🇩 Moldavië (+373)' },
   { code: '+377', label: '🇲🇨 Monaco (+377)' },
   { code: '+382', label: '🇲🇪 Montenegro (+382)' },
-  { code: '+975', label: '🇳🇵 Nepal (+977)' },
+  { code: '+977', label: '🇳🇵 Nepal (+977)' },
   { code: '+64', label: '🇳🇿 Nieuw-Zeeland (+64)' },
   { code: '+234', label: '🇳🇬 Nigeria (+234)' },
   { code: '+47', label: '🇳🇴 Noorwegen (+47)' },
@@ -126,9 +126,9 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
   const t = translations[currentLang] || translations.nl;
 
   const [phonePrefix, setPhonePrefix] = useState('+32');
+  const [selectedType, setSelectedType] = useState('Organisatie / Initiatief');
   const [formData, setFormData] = useState({
     naam: '',
-    type: 'Organisatie / Initiatief',
     event_date: '',
     adres: '',
     gemeente: '',
@@ -196,8 +196,8 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     // 3. Opslaan in Supabase
     const nieuwWaypoint = {
       naam: formData.naam,
-      type: formData.type,
-      event_date: formData.type === 'Activiteit' && formData.event_date ? formData.event_date : null,
+      type: selectedType,
+      event_date: selectedType === 'Activiteit' && formData.event_date ? formData.event_date : null,
       gemeente: formData.gemeente + (formData.adres ? ` (${formData.adres})` : ''),
       land: formData.land || 'België',
       contact: volledigTelefoonnummer,
@@ -223,7 +223,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       });
       setFormData({
         naam: '',
-        type: 'Organisatie / Initiatief',
         event_date: '',
         adres: '',
         gemeente: '',
@@ -234,10 +233,17 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
         description: '',
         domeinenText: ''
       });
+      setSelectedType('Organisatie / Initiatief');
       if (onWaypointAdded) onWaypointAdded();
     }
     setLoading(false);
   };
+
+  const typeOptions = [
+    { key: 'Zorgverlener', label: t.form.types.zorgverlener },
+    { key: 'Organisatie / Initiatief', label: t.form.types.organisatie },
+    { key: 'Activiteit', label: t.form.types.activiteit }
+  ];
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 mb-8">
@@ -284,17 +290,13 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
             <div className="md:col-span-7">
               <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.form.type}</label>
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { value: 'Zorgverlener', label: t.form.types.zorgverlener },
-                  { value: 'Organisatie / Initiatief', label: t.form.types.organisatie },
-                  { value: 'Activiteit', label: t.form.types.activiteit }
-                ].map((item) => (
+                {typeOptions.map((item) => (
                   <button
-                    key={item.value}
+                    key={item.key}
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: item.value })}
+                    onClick={() => setSelectedType(item.key)}
                     className={`p-2.5 text-xs font-semibold rounded border text-center transition-all ${
-                      formData.type === item.value
+                      selectedType === item.key
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                     }`}
@@ -307,7 +309,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
           </div>
 
           {/* Veld verschijnt ENKEL als het Type "Activiteit" is */}
-          {formData.type === 'Activiteit' && (
+          {selectedType === 'Activiteit' && (
             <div className="bg-amber-50 p-3 rounded border border-amber-200">
               <label className="block text-xs font-semibold text-amber-900 uppercase mb-1">
                 📅 {t.form.eventDate}
@@ -336,7 +338,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
             />
           </div>
 
-          {/* LIJN 3: Adres en Contactgegevens (Titel + Grid zonder losse veldtitels) */}
+          {/* LIJN 3: Adres en Contactgegevens */}
           <div className="pt-2">
             <h3 className="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-1">
               {t.form.contactSectionTitle}
@@ -377,10 +379,10 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                 <select
                   value={phonePrefix}
                   onChange={(e) => setPhonePrefix(e.target.value)}
-                  className="p-2.5 border border-slate-300 rounded text-xs bg-slate-50 text-slate-700 font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="p-2.5 border border-slate-300 rounded text-xs bg-slate-50 text-slate-700 font-medium focus:ring-2 focus:ring-emerald-500 outline-none max-w-[130px]"
                 >
-                  {countryPhoneCodes.map((c) => (
-                    <option key={c.code} value={c.code}>{c.label}</option>
+                  {countryPhoneCodes.map((c, idx) => (
+                    <option key={`${c.code}-${idx}`} value={c.code}>{c.label}</option>
                   ))}
                 </select>
                 <input
