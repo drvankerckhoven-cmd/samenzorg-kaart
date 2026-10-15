@@ -65,10 +65,18 @@ export default function Home() {
   const alleDomeinenSet = new Set();
   waypoints.forEach(w => {
     if (Array.isArray(w.domeinen)) {
-      w.domeinen.forEach(d => alleDomeinenSet.add(d));
+      w.domeinen.forEach(d => {
+        if (d && d.trim()) alleDomeinenSet.add(d.trim());
+      });
     }
   });
-  const alleDomeinen = [t.search.all, ...Array.from(alleDomeinenSet)];
+
+  // Zet om naar een array en sorteer alfabetisch (ongevoelig voor hoofdletters)
+  const gesorteerdeDomeinen = Array.from(alleDomeinenSet).sort((a, b) => 
+    a.localeCompare(b, currentLang, { sensitivity: 'base' })
+  );
+
+  const alleDomeinen = [t.search.all, ...gesorteerdeDomeinen];
 
   // Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
   const gefilterdeWaypoints = waypoints.filter((item) => {
