@@ -16,7 +16,6 @@ const Map = dynamic(() => import('@/components/Map'), {
   )
 });
 
-// Hulpfunctie voor ISO datum YYYY-MM-DD
 function getIsoDate(d) {
   return d.toISOString().split('T')[0];
 }
@@ -30,7 +29,7 @@ export default function Home() {
   const [selectType, setSelectType] = useState('Alles');
   const [selectDomein, setSelectDomein] = useState('Alles');
 
-  // Standaard datums: Vandaag en Vandaag + 1 Maand
+  // Standaard datums
   const vandaag = new Date();
   const eenMaandLater = new Date();
   eenMaandLater.setMonth(vandaag.getMonth() + 1);
@@ -42,6 +41,15 @@ export default function Home() {
   const [toonRegionaal, setToonRegionaal] = useState(false);
 
   const t = translations[currentLang] || translations.nl;
+
+  // Hulpfunctie om het Type netjes te vertalen naar de actieve taal
+  const vertaalType = useCallback((dbType) => {
+    if (!dbType) return '';
+    if (dbType === 'Zorgverlener') return t.form.types.zorgverlener;
+    if (dbType === 'Organisatie / Initiatief' || dbType === 'Initiatief') return t.form.types.organisatie;
+    if (dbType === 'Activiteit') return t.form.types.activiteit;
+    return dbType;
+  }, [t]);
 
   const fetchWaypoints = useCallback(async () => {
     const { data, error } = await supabase
@@ -60,8 +68,15 @@ export default function Home() {
     fetchWaypoints();
   }, [fetchWaypoints]);
 
-  const alleTypes = [t.search.all, ...Array.from(new Set(waypoints.map(w => w.type).filter(Boolean)))];
-  
+  // Vaste, vertaalde opties voor Type-dropdown
+  const vasteTypeOpties = [
+    { key: 'Alles', label: t.search.all },
+    { key: 'Zorgverlener', label: t.form.types.zorgverlener },
+    { key: 'Organisatie / Initiatief', label: t.form.types.organisatie },
+    { key: 'Activiteit', label: t.form.types.activiteit }
+  ];
+
+  // Geordende domeinenlijst
   const alleDomeinenSet = new Set();
   waypoints.forEach(w => {
     if (Array.isArray(w.domeinen)) {
@@ -71,11 +86,9 @@ export default function Home() {
     }
   });
 
-  // Zet om naar een array en sorteer alfabetisch (ongevoelig voor hoofdletters)
   const gesorteerdeDomeinen = Array.from(alleDomeinenSet).sort((a, b) => 
     a.localeCompare(b, currentLang, { sensitivity: 'base' })
   );
-
   const alleDomeinen = [t.search.all, ...gesorteerdeDomeinen];
 
   // Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
@@ -92,7 +105,7 @@ export default function Home() {
       (item.email && item.email.toLowerCase().includes(zoek)) ||
       (item.website && item.website.toLowerCase().includes(zoek));
 
-    const matchType = selectType === t.search.all || selectType === 'Alles' || item.type === selectType;
+    const matchType = selectType === 'Alles' || selectType === t.search.all || item.type === selectType;
 
     const matchDomein = selectDomein === t.search.all || selectDomein === 'Alles' || 
       (Array.isArray(item.domeinen) && item.domeinen.includes(selectDomein));
@@ -160,8 +173,8 @@ export default function Home() {
                 onChange={(e) => setSelectType(e.target.value)}
                 className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
               >
-                {alleTypes.map((type, idx) => (
-                  <option key={idx} value={type}>{type}</option>
+                {vasteTypeOpties.map((optie) => (
+                  <option key={optie.key} value={optie.key}>{optie.label}</option>
                 ))}
               </select>
             </div>
@@ -180,7 +193,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Onderste rij: Datum-vork filters verschijnen ENKEL als 'Activiteit' is gekozen */}
+          {/* Datum-vork filters verschijnen ENKEL als 'Activiteit' is gekozen */}
           {selectType === 'Activiteit' && (
             <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4 bg-amber-50/50 p-3 rounded">
               <div>
@@ -211,7 +224,7 @@ export default function Home() {
 
         </div>
 
-        {/* Vinkje voor het tonen van rode bolletjes (regionale locaties) */}
+        {/* Vertaalde Vink-optie voor regionale locaties */}
         <div className="flex items-center justify-between mb-3 px-1">
           <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
             <input
@@ -221,7 +234,7 @@ export default function Home() {
               className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
             />
             <span className="flex items-center gap-1.5 font-medium">
-              Toon ook regionale locaties zonder exact adres 
+              {t.search.regionalCheckbox}
               <span className="inline-block w-3.5 h-3.5 rounded-full bg-rose-500 border border-white shadow-sm ml-1" title="Rode bolletjes op de kaart"></span>
             </span>
           </label>
@@ -259,7 +272,7 @@ export default function Home() {
                 </div>
 
                 <p className="text-sm text-slate-500 mb-2">
-                  Type: {item.type} | Locatie: {item.gemeente}{item.land ? `, ${item.land}` : ''}
+                  Type: {vertaalType(item.type)} | Locatie: {item.gemeente}{item.land ? `, ${item.land}` : ''}
                 </p>
                 
                 {item.contact && <p className="text-sm text-slate-700">Tel: {item.contact}</p>}
