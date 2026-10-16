@@ -91,7 +91,7 @@ export default function Home() {
   );
   const alleDomeinen = [t.search.all, ...gesorteerdeDomeinen];
 
-  // Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
+// 1. Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
   const gefilterdeWaypoints = waypoints.filter((item) => {
     const zoek = zoekterm.toLowerCase();
 
@@ -110,7 +110,6 @@ export default function Home() {
     const matchDomein = selectDomein === t.search.all || selectDomein === 'Alles' || 
       (Array.isArray(item.domeinen) && item.domeinen.includes(selectDomein));
 
-    // Datum filteren voor activiteiten
     let matchDatum = true;
     if (item.type === 'Activiteit' && item.event_date) {
       if (datumVan && item.event_date < datumVan) matchDatum = false;
@@ -118,6 +117,13 @@ export default function Home() {
     }
 
     return matchZoekterm && matchType && matchDomein && matchDatum;
+  });
+
+  // 2. Alfabetisch rangschikken op naam (A -> Z)
+  gefilterdeWaypoints.sort((a, b) => {
+    const naamA = a.naam ? a.naam.trim() : '';
+    const naamB = b.naam ? b.naam.trim() : '';
+    return naamA.localeCompare(naamB, currentLang, { sensitivity: 'base' });
   });
 
   // Gefilterde lijst specifiek voor de KAART
