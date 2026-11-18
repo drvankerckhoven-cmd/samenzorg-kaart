@@ -46,7 +46,6 @@ export default function Home() {
 
   const t = translations[currentLang] || translations.nl;
 
-  // Hulpfunctie om het Type netjes te vertalen naar de actieve taal
   const vertaalType = useCallback((dbType) => {
     if (!dbType) return '';
     if (dbType === 'Zorgverlener') return t.form.types.zorgverlener;
@@ -54,6 +53,31 @@ export default function Home() {
     if (dbType === 'Activiteit') return t.form.types.activiteit;
     return dbType;
   }, [t]);
+
+  const formatActiviteitBadge = useCallback((item) => {
+    if (!item.event_date) return '';
+    const locale = currentLang === 'nl' ? 'nl-BE' : currentLang;
+    const dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
+    const startDatumStr = new Date(item.event_date).toLocaleDateString(locale, dateOpts);
+
+    const heeftEindDatum = item.event_end_date && item.event_end_date !== item.event_date;
+    const eindDatumStr = heeftEindDatum
+      ? new Date(item.event_end_date).toLocaleDateString(locale, dateOpts)
+      : '';
+
+    let tekst = startDatumStr;
+    if (item.event_start_time) tekst += ` (${item.event_start_time}`;
+    if (heeftEindDatum) {
+      if (item.event_start_time) tekst += ')';
+      tekst += ` – ${eindDatumStr}`;
+      if (item.event_end_time) tekst += ` (${item.event_end_time})`;
+    } else if (item.event_end_time) {
+      tekst += item.event_start_time ? ` - ${item.event_end_time})` : ` (tot ${item.event_end_time})`;
+    } else if (item.event_start_time) {
+      tekst += ')';
+    }
+    return tekst;
+  }, [currentLang]);
 
   const fetchWaypoints = useCallback(async () => {
     const { data, error } = await supabase
@@ -72,7 +96,6 @@ export default function Home() {
     fetchWaypoints();
   }, [fetchWaypoints]);
 
-  // Vaste, vertaalde opties voor Type-dropdown
   const vasteTypeOpties = [
     { key: 'Alles', label: t.search.all },
     { key: 'Zorgverlener', label: t.form.types.zorgverlener },
@@ -80,7 +103,6 @@ export default function Home() {
     { key: 'Activiteit', label: t.form.types.activiteit }
   ];
 
-  // Geordende domeinenlijst
   const alleDomeinenSet = new Set();
   waypoints.forEach(w => {
     if (Array.isArray(w.domeinen)) {
@@ -95,7 +117,6 @@ export default function Home() {
   );
   const alleDomeinen = [t.search.all, ...gesorteerdeDomeinen];
 
-  // 1. Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork (inclusief items zonder coördinaten)
   const gefilterdeWaypoints = waypoints.filter((item) => {
     const zoek = zoekterm.toLowerCase();
 
@@ -115,24 +136,22 @@ export default function Home() {
     const matchDomein = selectDomein === t.search.all || selectDomein === 'Alles' || 
       (Array.isArray(item.domeinen) && item.domeinen.includes(selectDomein));
 
-    // Datum filteren voor activiteiten
     let matchDatum = true;
     if (item.type === 'Activiteit' && item.event_date) {
-      if (datumVan && item.event_date < datumVan) matchDatum = false;
+      const effectieveEindDatum = item.event_end_date || item.event_date;
+      if (datumVan && effectieveEindDatum < datumVan) matchDatum = false;
       if (datumTot && item.event_date > datumTot) matchDatum = false;
     }
 
     return matchZoekterm && matchType && matchDomein && matchDatum;
   });
 
-  // 2. Alfabetisch rangschikken op naam (A -> Z)
   gefilterdeWaypoints.sort((a, b) => {
     const naamA = a.naam ? a.naam.trim() : '';
     const naamB = b.naam ? b.naam.trim() : '';
     return naamA.localeCompare(naamB, currentLang, { sensitivity: 'base' });
   });
 
-  // 3. Lijst specifiek voor de KAART: alleen items die geldige coördinaten hebben (inclusief rode regionale bolletjes)
   const kaartWaypoints = gefilterdeWaypoints.filter(
     (item) => item.latitude !== null && item.longitude !== null && item.latitude !== '' && item.longitude !== ''
   );
@@ -140,7 +159,6 @@ export default function Home() {
   return (
     <main className="min-h-screen p-4 md:p-8 bg-slate-50 text-slate-800">
       <div className="max-w-6xl mx-auto">
-        {/* Header met vertaalde titel, ondertitel en Taalschakelaar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">
@@ -158,13 +176,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Inzendformulier */}
         <AddWaypointForm onWaypointAdded={fetchWaypoints} currentLang={currentLang} />
 
-        {/* Vertaalde Filtersectie */}
         <div className="mb-6 p-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col gap-4">
-          
-          {/* Bovenste rij filters: Zoekbalk, Type & Domein */}
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{t.search.label}</label>
@@ -206,7 +220,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Datum-vork filters verschijnen ENKEL als 'Activiteit' is gekozen */}
           {selectType === 'Activiteit' && (
             <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4 bg-amber-50/50 p-3 rounded">
               <div>
@@ -246,10 +259,8 @@ export default function Home() {
               </div>
             </div>
           )}
-
         </div>
 
-        {/* Legenda voor regionale locaties (rode bolletjes) */}
         <div className="flex items-center mb-3 px-1">
           <div className="flex items-center gap-2 text-sm text-slate-700 bg-rose-50/80 border border-rose-200 px-3 py-1.5 rounded-md">
             <span className="inline-block w-3.5 h-3.5 rounded-full bg-rose-500 border border-white shadow-sm shrink-0"></span>
@@ -288,11 +299,11 @@ export default function Home() {
 
               return (
                 <div key={item.id} className="p-5 bg-white rounded-lg shadow border border-slate-200">
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                     <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
                     {item.type === 'Activiteit' && item.event_date && (
                       <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded border border-amber-200">
-                        📅 {new Date(item.event_date).toLocaleDateString(currentLang === 'nl' ? 'nl-BE' : currentLang, { day: 'numeric', month: 'long', year: 'numeric' })}
+                        📅 {formatActiviteitBadge(item)}
                       </span>
                     )}
                   </div>
