@@ -127,6 +127,9 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
   const [phonePrefix, setPhonePrefix] = useState('+32');
   const [selectedType, setSelectedType] = useState('Organisatie / Initiatief');
+  // Keuze tussen exact adres ('exact') of regionaal ('regional')
+  const [addressMode, setAddressMode] = useState('exact');
+
   const [formData, setFormData] = useState({
     naam: '',
     event_date: '',
@@ -145,6 +148,23 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Hulpfunctie om één zoekopdracht uit te voeren op OpenStreetMap
+  const zoekOpNominatim = async (query) => {
+    if (!query || !query.trim()) return null;
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=${currentLang}&q=${encodeURIComponent(query.trim())}`
+      );
+      const resultaten = await response.json();
+      if (resultaten && resultaten.length > 0) {
+        return resultaten[0];
+      }
+    } catch (err) {
+      console.warn('Geocoding fout voor:', query, err);
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -154,33 +174,46 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     let gevondenLng = null;
     let isExactAdres = false;
 
-    // 1. Coördinaten opzoeken via OpenStreetMap
-    const zoekAdres = `${formData.adres} ${formData.gemeente} ${formData.land}`.trim();
+    const adresSchoon = formData.adres.trim();
+    const gemeenteSchoon = formData.gemeente.trim();
+    const landSchoon = formData.land.trim();
 
-    if (zoekAdres) {
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(zoekAdres)}`
-        );
-        const resultaten = await response.json();
+    let besteResultaat = null;
 
-        if (resultaten && resultaten.length > 0) {
-          const besteResultaat = resultaten[0];
-          gevondenLat = parseFloat(besteResultaat.lat);
-          gevondenLng = parseFloat(besteResultaat.lon);
+    // STAP 1: Exact adres zoeken (enkel als gebruiker koos voor "Ik heb een exact adres")
+    if (addressMode === 'exact' && adresSchoon) {
+      besteResultaat = await zoekOpNominatim(`${adresSchoon}, ${gemeenteSchoon}, ${landSchoon}`);
+      if (besteResultaat) {
+        const addresstype = besteResultaat.addresstype || besteResultaat.type;
+        const heeftHuisnummer =
+          besteResultaat.address &&
+          (besteResultaat.address.house_number || besteResultaat.address.building);
 
-          const addresstype = besteResultaat.addresstype || besteResultaat.type;
-          const heeftHuisnummer = besteResultaat.address && (besteResultaat.address.house_number || besteResultaat.address.building);
-          
-          if (heeftHuisnummer || ['house', 'building', 'residential', 'premise'].includes(addresstype)) {
-            isExactAdres = true;
-          } else {
-            isExactAdres = false;
-          }
+        if (
+          heeftHuisnummer ||
+          ['house', 'building', 'residential', 'premise'].includes(addresstype)
+        ) {
+          isExactAdres = true;
         }
-      } catch (err) {
-        console.warn('Geocoding kon geen coördinaten ophalen:', err);
       }
+    }
+
+    // STAP 2: Stad of Regio + Land zoeken (als Stap 1 niets opleverde, of bij regionale keuze met ingevulde stad/regio)
+    if (!besteResultaat && gemeenteSchoon) {
+      besteResultaat = await zoekOpNominatim(`${gemeenteSchoon}, ${landSchoon}`);
+      isExactAdres = false;
+    }
+
+    // STAP 3: Alleen Land zoeken (als Stap 2 niets opleverde, of als Stad/Regio leeg is gelaten bij regionaal)
+    if (!besteResultaat && landSchoon) {
+      besteResultaat = await zoekOpNominatim(landSchoon);
+      isExactAdres = false;
+    }
+
+    // Als een van de 3 stappen coördinaten heeft opgeleverd, slaan we die op (anders blijven ze null)
+    if (besteResultaat) {
+      gevondenLat = parseFloat(besteResultaat.lat);
+      gevondenLng = parseFloat(besteResultaat.lon);
     }
 
     // 2. Domeinen omzetten naar array
@@ -194,14 +227,22 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       ? `${phonePrefix} ${formData.contact.trim()}` 
       : '';
 
-    // 3. Opslaan in Supabase
+    // 3. Tekst voor gemeente/adres netjes opbouwen
+    let samengesteldeGemeente = '';
+    if (addressMode === 'exact') {
+      samengesteldeGemeente = gemeenteSchoon + (adresSchoon ? ` (${adresSchoon})` : '');
+    } else {
+      samengesteldeGemeente = gemeenteSchoon;
+    }
+
+    // 4. Opslaan in Supabase
     const nieuwWaypoint = {
       naam: formData.naam,
       type: selectedType,
       event_date: selectedType === 'Activiteit' && formData.event_date ? formData.event_date : null,
       locatie_naam: formData.locatie_naam.trim() || null,
-      gemeente: formData.gemeente + (formData.adres ? ` (${formData.adres})` : ''),
-      land: formData.land || 'België',
+      gemeente: samengesteldeGemeente || null,
+      land: landSchoon || 'België',
       contact: volledigTelefoonnummer,
       email: formData.email,
       website: formData.website,
@@ -237,6 +278,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
         domeinenText: ''
       });
       setSelectedType('Organisatie / Initiatief');
+      setAddressMode('exact');
       if (onWaypointAdded) onWaypointAdded();
     }
     setLoading(false);
@@ -343,9 +385,37 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
           {/* LIJN 3: Adres en Contactgegevens */}
           <div className="pt-2">
-            <h3 className="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-1">
-              {t.form.contactSectionTitle}
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 border-b border-slate-100 pb-2">
+              <h3 className="text-sm font-bold text-slate-900">
+                {t.form.contactSectionTitle}
+              </h3>
+
+              {/* Twee keuzeknoppen: Exact adres vs. Regionaal */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAddressMode('exact')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded border transition-all ${
+                    addressMode === 'exact'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                      : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  📍 {t.form.addressModeExact}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddressMode('regional')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded border transition-all ${
+                    addressMode === 'regional'
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                      : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  🗺️ {t.form.addressModeRegional}
+                </button>
+              </div>
+            </div>
             
             <div className="grid gap-3 md:grid-cols-3">
               {/* Eerste veld: Naam van locatie of zaal (niet verplicht, max 50 tekens) */}
@@ -359,25 +429,35 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                 className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
               />
 
-              <input
-                type="text"
-                name="adres"
-                value={formData.adres}
-                onChange={handleChange}
-                placeholder={t.form.addressPlaceholder}
-                className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
+              {/* Straat + huisnummer verschijnt ENKEL bij "Ik heb een exact adres" */}
+              {addressMode === 'exact' && (
+                <input
+                  type="text"
+                  name="adres"
+                  required
+                  value={formData.adres}
+                  onChange={handleChange}
+                  placeholder={t.form.addressPlaceholderExact}
+                  className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              )}
 
+              {/* Gemeente / Stad (verplicht bij exact adres, optioneel bij regionaal) */}
               <input
                 type="text"
                 name="gemeente"
-                required
+                required={addressMode === 'exact'}
                 value={formData.gemeente}
                 onChange={handleChange}
-                placeholder={t.form.cityPlaceholder}
+                placeholder={
+                  addressMode === 'exact'
+                    ? t.form.cityPlaceholderExact
+                    : t.form.cityPlaceholderRegional
+                }
                 className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
               />
 
+              {/* Land (altijd verplicht) */}
               <input
                 type="text"
                 name="land"
