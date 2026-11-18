@@ -127,11 +127,8 @@ export default function Home() {
     return naamA.localeCompare(naamB, currentLang, { sensitivity: 'base' });
   });
 
-  // Gefilterde lijst specifiek voor de KAART
-  const kaartWaypoints = gefilterdeWaypoints.filter(item => {
-    if (toonRegionaal) return true;
-    return item.is_exact !== false;
-  });
+  // Alle gefilterde waypoints (inclusief regionale schattingen) worden altijd op de kaart getoond
+  const kaartWaypoints = gefilterdeWaypoints;
 
   return (
     <main className="min-h-screen p-4 md:p-8 bg-slate-50 text-slate-800">
@@ -233,20 +230,14 @@ export default function Home() {
 
         </div>
 
-        {/* Vertaalde Vink-optie voor regionale locaties */}
-        <div className="flex items-center justify-between mb-3 px-1">
-          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={toonRegionaal}
-              onChange={(e) => setToonRegionaal(e.target.checked)}
-              className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
-            />
-            <span className="flex items-center gap-1.5 font-medium">
-              {t.search.regionalCheckbox}
-              <span className="inline-block w-3.5 h-3.5 rounded-full bg-rose-500 border border-white shadow-sm ml-1" title="Rode bolletjes op de kaart"></span>
+        {/* Legenda voor regionale locaties (rode bolletjes) */}
+        <div className="flex items-center mb-3 px-1">
+          <div className="flex items-center gap-2 text-sm text-slate-700 bg-rose-50/80 border border-rose-200 px-3 py-1.5 rounded-md">
+            <span className="inline-block w-3.5 h-3.5 rounded-full bg-rose-500 border border-white shadow-sm shrink-0"></span>
+            <span className="font-medium text-rose-950">
+              {t.search.regionalLegend}
             </span>
-          </label>
+          </div>
         </div>
 
         {/* Interactieve Kaart */}
