@@ -5,15 +5,12 @@ import { supabase } from '../app/supabase';
 import { translations } from '../app/translations';
 
 const countryPhoneCodes = [
-  // Populaire/Dichtstbijzijnde landen bovenaan
   { code: '+32', label: '🇧🇪 België (+32)' },
   { code: '+31', label: '🇳🇱 Nederland (+31)' },
   { code: '+33', label: '🇫🇷 Frankrijk (+33)' },
   { code: '+49', label: '🇩🇪 Duitsland (+49)' },
   { code: '+352', label: '🇱🇺 Luxemburg (+352)' },
   { code: '+44', label: '🇬🇧 Verenigd Koninkrijk (+44)' },
-  
-  // Alle overige landen alfabetisch
   { code: '+93', label: '🇦🇫 Afghanistan (+93)' },
   { code: '+355', label: '🇦🇱 Albanië (+355)' },
   { code: '+213', label: '🇩🇿 Algerije (+213)' },
@@ -127,12 +124,14 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
   const [phonePrefix, setPhonePrefix] = useState('+32');
   const [selectedType, setSelectedType] = useState('Organisatie / Initiatief');
-  // Standaard géén knop gekozen (null); gebruiker moet verplicht kiezen tussen 'exact' of 'regional'
   const [addressMode, setAddressMode] = useState(null);
 
   const [formData, setFormData] = useState({
     naam: '',
     event_date: '',
+    event_start_time: '',
+    event_end_date: '',
+    event_end_time: '',
     locatie_naam: '',
     adres: '',
     gemeente: '',
@@ -145,10 +144,22 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'event_date') {
+      // Zodra de begindatum wordt ingevuld/gewijzigd, zet einddatum automatisch op dezelfde datum
+      setFormData((prev) => ({
+        ...prev,
+        event_date: value,
+        event_end_date: value
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
-  // Hulpfunctie om één zoekopdracht uit te voeren op OpenStreetMap
   const zoekOpNominatim = async (query) => {
     if (!query || !query.trim()) return null;
     try {
@@ -169,7 +180,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
     e.preventDefault();
     setMelding(null);
 
-    // Verplichte controle: heeft de gebruiker een van de twee locatie-knoppen gekozen?
     if (!addressMode) {
       setMelding({ type: 'fout', tekst: t.form.addressModeRequired });
       return;
@@ -187,7 +197,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
     let besteResultaat = null;
 
-    // STAP 1: Exact adres zoeken (enkel als gebruiker koos voor "Ik heb een exact adres")
     if (addressMode === 'exact' && adresSchoon) {
       besteResultaat = await zoekOpNominatim(`${adresSchoon}, ${gemeenteSchoon}, ${landSchoon}`);
       if (besteResultaat) {
@@ -205,36 +214,30 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       }
     }
 
-    // STAP 2: Stad of Regio + Land zoeken (als Stap 1 niets opleverde, of bij regionale keuze met ingevulde stad/regio)
     if (!besteResultaat && gemeenteSchoon) {
       besteResultaat = await zoekOpNominatim(`${gemeenteSchoon}, ${landSchoon}`);
       isExactAdres = false;
     }
 
-    // STAP 3: Alleen Land zoeken (als Stap 2 niets opleverde, of als Stad/Regio leeg is gelaten bij regionaal)
     if (!besteResultaat && landSchoon) {
       besteResultaat = await zoekOpNominatim(landSchoon);
       isExactAdres = false;
     }
 
-    // Als een van de 3 stappen coördinaten heeft opgeleverd, slaan we die op (anders blijven ze null)
     if (besteResultaat) {
       gevondenLat = parseFloat(besteResultaat.lat);
       gevondenLng = parseFloat(besteResultaat.lon);
     }
 
-    // 2. Domeinen omzetten naar array
     const domeinenArray = formData.domeinenText
       .split(',')
       .map(d => d.trim())
       .filter(Boolean);
 
-    // Telefoonnummer combineren met landcode
     const volledigTelefoonnummer = formData.contact 
       ? `${phonePrefix} ${formData.contact.trim()}` 
       : '';
 
-    // 3. Tekst voor gemeente/adres netjes opbouwen
     let samengesteldeGemeente = '';
     if (addressMode === 'exact') {
       samengesteldeGemeente = gemeenteSchoon + (adresSchoon ? ` (${adresSchoon})` : '');
@@ -242,11 +245,15 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       samengesteldeGemeente = gemeenteSchoon;
     }
 
-    // 4. Opslaan in Supabase
+    const isActiviteit = selectedType === 'Activiteit';
+
     const nieuwWaypoint = {
       naam: formData.naam,
       type: selectedType,
-      event_date: selectedType === 'Activiteit' && formData.event_date ? formData.event_date : null,
+      event_date: isActiviteit && formData.event_date ? formData.event_date : null,
+      event_start_time: isActiviteit && formData.event_start_time ? formData.event_start_time : null,
+      event_end_date: isActiviteit && formData.event_end_date ? formData.event_end_date : null,
+      event_end_time: isActiviteit && formData.event_end_time ? formData.event_end_time : null,
       locatie_naam: formData.locatie_naam.trim() || null,
       gemeente: samengesteldeGemeente || null,
       land: landSchoon || 'België',
@@ -274,6 +281,9 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       setFormData({
         naam: '',
         event_date: '',
+        event_start_time: '',
+        event_end_date: '',
+        event_end_time: '',
         locatie_naam: '',
         adres: '',
         gemeente: '',
@@ -360,20 +370,62 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
             </div>
           </div>
 
-          {/* Veld verschijnt ENKEL als het Type "Activiteit" is */}
+          {/* Velden verschijnen ENKEL als het Type "Activiteit" is */}
           {selectedType === 'Activiteit' && (
-            <div className="bg-amber-50 p-3 rounded border border-amber-200">
-              <label className="block text-xs font-semibold text-amber-900 uppercase mb-1">
-                📅 {t.form.eventDate}
-              </label>
-              <input
-                type="date"
-                name="event_date"
-                required
-                value={formData.event_date}
-                onChange={handleChange}
-                className="w-48 p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
+            <div className="bg-amber-50 p-4 rounded border border-amber-200 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+              <div>
+                <label className="block text-xs font-semibold text-amber-900 uppercase mb-1">
+                  📅 {t.form.eventDate}
+                </label>
+                <input
+                  type="date"
+                  name="event_date"
+                  required
+                  value={formData.event_date}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-amber-900 uppercase mb-1">
+                  🕒 {t.form.eventStartTime}
+                </label>
+                <input
+                  type="time"
+                  name="event_start_time"
+                  value={formData.event_start_time}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-amber-900 uppercase mb-1">
+                  📅 {t.form.eventEndDate}
+                </label>
+                <input
+                  type="date"
+                  name="event_end_date"
+                  min={formData.event_date || undefined}
+                  value={formData.event_end_date}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-amber-900 uppercase mb-1">
+                  🕒 {t.form.eventEndTime}
+                </label>
+                <input
+                  type="time"
+                  name="event_end_time"
+                  value={formData.event_end_time}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
             </div>
           )}
 
@@ -390,7 +442,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
             />
           </div>
 
-          {/* LIJN 3: Keuzeknoppen voor locatie-type (standaard geen geselecteerd; beide groen bij selectie) */}
+          {/* LIJN 3: Keuzeknoppen voor locatie-type */}
           <div className="pt-2">
             <div className="flex flex-wrap gap-2">
               <button
@@ -423,7 +475,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
               </button>
             </div>
 
-            {/* Titel en velden "Adres en Contactgegevens" verschijnen PAS zodra een van de twee knoppen gekozen is */}
             {addressMode && (
               <div className="mt-4">
                 <h3 className="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-1">
@@ -431,7 +482,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                 </h3>
                 
                 <div className="grid gap-3 md:grid-cols-3">
-                  {/* Eerste veld: Naam van locatie of zaal (niet verplicht, max 50 tekens) */}
                   <input
                     type="text"
                     name="locatie_naam"
@@ -442,7 +492,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                     className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                   />
 
-                  {/* Straat + huisnummer verschijnt ENKEL bij "Ik heb een exact adres" */}
                   {addressMode === 'exact' && (
                     <input
                       type="text"
@@ -455,7 +504,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                     />
                   )}
 
-                  {/* Gemeente / Stad (verplicht bij exact adres, optioneel bij regionaal) */}
                   <input
                     type="text"
                     name="gemeente"
@@ -470,7 +518,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                     className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                   />
 
-                  {/* Land (altijd verplicht) */}
                   <input
                     type="text"
                     name="land"
@@ -481,7 +528,6 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
                     className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                   />
 
-                  {/* Telefoon met Landcode Picklist */}
                   <div className="flex gap-1.5">
                     <select
                       value={phonePrefix}
