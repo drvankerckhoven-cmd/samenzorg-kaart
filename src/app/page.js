@@ -20,6 +20,13 @@ function getIsoDate(d) {
   return d.toISOString().split('T')[0];
 }
 
+function formatEuropeseDatum(isoDate) {
+  if (!isoDate) return '';
+  const [jaar, maand, dag] = isoDate.split('-');
+  if (!jaar || !maand || !dag) return isoDate;
+  return `${dag}/${maand}/${jaar}`;
+}
+
 export default function Home() {
   const [currentLang, setCurrentLang] = useState('nl');
   const [waypoints, setWaypoints] = useState([]);
@@ -29,13 +36,13 @@ export default function Home() {
   const [selectType, setSelectType] = useState('Alles');
   const [selectDomein, setSelectDomein] = useState('Alles');
 
-  // Standaard datums
+  // Standaard datums: vandaag tot 12 maanden vooruit
   const vandaag = new Date();
-  const eenMaandLater = new Date();
-  eenMaandLater.setMonth(vandaag.getMonth() + 1);
+  const eenJaarLater = new Date();
+  eenJaarLater.setFullYear(vandaag.getFullYear() + 1);
 
   const [datumVan, setDatumVan] = useState(getIsoDate(vandaag));
-  const [datumTot, setDatumTot] = useState(getIsoDate(eenMaandLater));
+  const [datumTot, setDatumTot] = useState(getIsoDate(eenJaarLater));
 
   const t = translations[currentLang] || translations.nl;
 
@@ -206,24 +213,36 @@ export default function Home() {
                 <label className="block text-xs font-semibold uppercase text-amber-900 mb-1">
                   📅 {t.search.dateFromLabel}
                 </label>
-                <input
-                  type="date"
-                  value={datumVan}
-                  onChange={(e) => setDatumVan(e.target.value)}
-                  className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                />
+                <div className="relative w-48">
+                  <input
+                    type="date"
+                    lang="nl-BE"
+                    value={datumVan}
+                    onChange={(e) => setDatumVan(e.target.value)}
+                    className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-transparent selection:bg-transparent"
+                  />
+                  <span className="pointer-events-none absolute left-2.5 top-2 text-sm text-slate-800">
+                    {formatEuropeseDatum(datumVan)}
+                  </span>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-amber-900 mb-1">
                   📅 {t.search.dateToLabel}
                 </label>
-                <input
-                  type="date"
-                  value={datumTot}
-                  onChange={(e) => setDatumTot(e.target.value)}
-                  className="w-48 p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                />
+                <div className="relative w-48">
+                  <input
+                    type="date"
+                    lang="nl-BE"
+                    value={datumTot}
+                    onChange={(e) => setDatumTot(e.target.value)}
+                    className="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-transparent selection:bg-transparent"
+                  />
+                  <span className="pointer-events-none absolute left-2.5 top-2 text-sm text-slate-800">
+                    {formatEuropeseDatum(datumTot)}
+                  </span>
+                </div>
               </div>
             </div>
           )}
