@@ -127,8 +127,8 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
   const [phonePrefix, setPhonePrefix] = useState('+32');
   const [selectedType, setSelectedType] = useState('Organisatie / Initiatief');
-  // Keuze tussen exact adres ('exact') of regionaal ('regional')
-  const [addressMode, setAddressMode] = useState('exact');
+  // Standaard géén knop gekozen (null); gebruiker moet verplicht kiezen tussen 'exact' of 'regional'
+  const [addressMode, setAddressMode] = useState(null);
 
   const [formData, setFormData] = useState({
     naam: '',
@@ -167,8 +167,15 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMelding(null);
+
+    // Verplichte controle: heeft de gebruiker een van de twee locatie-knoppen gekozen?
+    if (!addressMode) {
+      setMelding({ type: 'fout', tekst: t.form.addressModeRequired });
+      return;
+    }
+
+    setLoading(true);
 
     let gevondenLat = null;
     let gevondenLng = null;
@@ -278,7 +285,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
         domeinenText: ''
       });
       setSelectedType('Organisatie / Initiatief');
-      setAddressMode('exact');
+      setAddressMode(null);
       if (onWaypointAdded) onWaypointAdded();
     }
     setLoading(false);
@@ -383,130 +390,138 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
             />
           </div>
 
-          {/* LIJN 3: Adres en Contactgegevens */}
+          {/* LIJN 3: Keuzeknoppen voor locatie-type (standaard geen geselecteerd; beide groen bij selectie) */}
           <div className="pt-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 border-b border-slate-100 pb-2">
-              <h3 className="text-sm font-bold text-slate-900">
-                {t.form.contactSectionTitle}
-              </h3>
-
-              {/* Twee keuzeknoppen: Exact adres vs. Regionaal */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAddressMode('exact')}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded border transition-all ${
-                    addressMode === 'exact'
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-                  }`}
-                >
-                  📍 {t.form.addressModeExact}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddressMode('regional')}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded border transition-all ${
-                    addressMode === 'regional'
-                      ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-                  }`}
-                >
-                  🗺️ {t.form.addressModeRegional}
-                </button>
-              </div>
-            </div>
-            
-            <div className="grid gap-3 md:grid-cols-3">
-              {/* Eerste veld: Naam van locatie of zaal (niet verplicht, max 50 tekens) */}
-              <input
-                type="text"
-                name="locatie_naam"
-                maxLength={50}
-                value={formData.locatie_naam}
-                onChange={handleChange}
-                placeholder={t.form.locationNamePlaceholder}
-                className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
-
-              {/* Straat + huisnummer verschijnt ENKEL bij "Ik heb een exact adres" */}
-              {addressMode === 'exact' && (
-                <input
-                  type="text"
-                  name="adres"
-                  required
-                  value={formData.adres}
-                  onChange={handleChange}
-                  placeholder={t.form.addressPlaceholderExact}
-                  className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                />
-              )}
-
-              {/* Gemeente / Stad (verplicht bij exact adres, optioneel bij regionaal) */}
-              <input
-                type="text"
-                name="gemeente"
-                required={addressMode === 'exact'}
-                value={formData.gemeente}
-                onChange={handleChange}
-                placeholder={
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAddressMode('exact');
+                  if (melding?.type === 'fout') setMelding(null);
+                }}
+                className={`px-4 py-2 text-xs font-semibold rounded border transition-all ${
                   addressMode === 'exact'
-                    ? t.form.cityPlaceholderExact
-                    : t.form.cityPlaceholderRegional
-                }
-                className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
-
-              {/* Land (altijd verplicht) */}
-              <input
-                type="text"
-                name="land"
-                required
-                value={formData.land}
-                onChange={handleChange}
-                placeholder={t.form.countryPlaceholder}
-                className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
-
-              {/* Telefoon met Landcode Picklist */}
-              <div className="flex gap-1.5">
-                <select
-                  value={phonePrefix}
-                  onChange={(e) => setPhonePrefix(e.target.value)}
-                  className="p-2.5 border border-slate-300 rounded text-xs bg-slate-50 text-slate-700 font-medium focus:ring-2 focus:ring-emerald-500 outline-none max-w-[130px]"
-                >
-                  {countryPhoneCodes.map((c, idx) => (
-                    <option key={`${c.code}-${idx}`} value={c.code}>{c.label}</option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  name="contact"
-                  value={formData.contact}
-                  onChange={handleChange}
-                  placeholder={t.form.phonePlaceholder}
-                  className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                />
-              </div>
-
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder={t.form.emailPlaceholder}
-                className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
-
-              <input
-                type="url"
-                name="website"
-                value={formData.website}
-                onChange={handleChange}
-                placeholder={t.form.websitePlaceholder}
-                className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                    : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+              >
+                📍 {t.form.addressModeExact}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAddressMode('regional');
+                  if (melding?.type === 'fout') setMelding(null);
+                }}
+                className={`px-4 py-2 text-xs font-semibold rounded border transition-all ${
+                  addressMode === 'regional'
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                    : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+              >
+                🗺️ {t.form.addressModeRegional}
+              </button>
             </div>
+
+            {/* Titel en velden "Adres en Contactgegevens" verschijnen PAS zodra een van de twee knoppen gekozen is */}
+            {addressMode && (
+              <div className="mt-4">
+                <h3 className="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-1">
+                  {t.form.contactSectionTitle}
+                </h3>
+                
+                <div className="grid gap-3 md:grid-cols-3">
+                  {/* Eerste veld: Naam van locatie of zaal (niet verplicht, max 50 tekens) */}
+                  <input
+                    type="text"
+                    name="locatie_naam"
+                    maxLength={50}
+                    value={formData.locatie_naam}
+                    onChange={handleChange}
+                    placeholder={t.form.locationNamePlaceholder}
+                    className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+
+                  {/* Straat + huisnummer verschijnt ENKEL bij "Ik heb een exact adres" */}
+                  {addressMode === 'exact' && (
+                    <input
+                      type="text"
+                      name="adres"
+                      required
+                      value={formData.adres}
+                      onChange={handleChange}
+                      placeholder={t.form.addressPlaceholderExact}
+                      className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                  )}
+
+                  {/* Gemeente / Stad (verplicht bij exact adres, optioneel bij regionaal) */}
+                  <input
+                    type="text"
+                    name="gemeente"
+                    required={addressMode === 'exact'}
+                    value={formData.gemeente}
+                    onChange={handleChange}
+                    placeholder={
+                      addressMode === 'exact'
+                        ? t.form.cityPlaceholderExact
+                        : t.form.cityPlaceholderRegional
+                    }
+                    className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+
+                  {/* Land (altijd verplicht) */}
+                  <input
+                    type="text"
+                    name="land"
+                    required
+                    value={formData.land}
+                    onChange={handleChange}
+                    placeholder={t.form.countryPlaceholder}
+                    className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+
+                  {/* Telefoon met Landcode Picklist */}
+                  <div className="flex gap-1.5">
+                    <select
+                      value={phonePrefix}
+                      onChange={(e) => setPhonePrefix(e.target.value)}
+                      className="p-2.5 border border-slate-300 rounded text-xs bg-slate-50 text-slate-700 font-medium focus:ring-2 focus:ring-emerald-500 outline-none max-w-[130px]"
+                    >
+                      {countryPhoneCodes.map((c, idx) => (
+                        <option key={`${c.code}-${idx}`} value={c.code}>{c.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      name="contact"
+                      value={formData.contact}
+                      onChange={handleChange}
+                      placeholder={t.form.phonePlaceholder}
+                      className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder={t.form.emailPlaceholder}
+                    className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    placeholder={t.form.websitePlaceholder}
+                    className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* LIJN 4: Korte beschrijving */}
