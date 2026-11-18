@@ -252,7 +252,8 @@ export default function Home() {
 
         {/* Interactieve Kaart */}
         <div className="mb-8">
-        </div>
+        <Map waypoints={kaartWaypoints} />
+          </div>
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-slate-900">{t.search.overviewTitle}</h2>
