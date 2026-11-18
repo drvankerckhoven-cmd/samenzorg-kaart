@@ -37,8 +37,6 @@ export default function Home() {
   const [datumVan, setDatumVan] = useState(getIsoDate(vandaag));
   const [datumTot, setDatumTot] = useState(getIsoDate(eenMaandLater));
 
-  
-
   const t = translations[currentLang] || translations.nl;
 
   // Hulpfunctie om het Type netjes te vertalen naar de actieve taal
@@ -90,7 +88,7 @@ export default function Home() {
   );
   const alleDomeinen = [t.search.all, ...gesorteerdeDomeinen];
 
-  // 1. Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
+  // 1. Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork (inclusief items zonder coördinaten)
   const gefilterdeWaypoints = waypoints.filter((item) => {
     const zoek = zoekterm.toLowerCase();
 
@@ -127,8 +125,10 @@ export default function Home() {
     return naamA.localeCompare(naamB, currentLang, { sensitivity: 'base' });
   });
 
-  // Alle gefilterde waypoints (inclusief regionale schattingen) worden altijd op de kaart getoond
-  const kaartWaypoints = gefilterdeWaypoints;
+  // 3. Lijst specifiek voor de KAART: alleen items die geldige coördinaten hebben (inclusief rode regionale bolletjes)
+  const kaartWaypoints = gefilterdeWaypoints.filter(
+    (item) => item.latitude !== null && item.longitude !== null && item.latitude !== '' && item.longitude !== ''
+  );
 
   return (
     <main className="min-h-screen p-4 md:p-8 bg-slate-50 text-slate-800">
@@ -240,10 +240,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Interactieve Kaart */}
+        {/* Interactieve Kaart (VERGEET DE SPATIE TUSSEN < EN Map NIET WEG TE HALEN!) */}
         <div className="mb-8">
-        <Map waypoints={kaartWaypoints} />
-          </div>
+          <Map waypoints={kaartWaypoints} />
+        </div>
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-slate-900">{t.search.overviewTitle}</h2>
@@ -260,41 +260,49 @@ export default function Home() {
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {gefilterdeWaypoints.map((item) => (
-              <div key={item.id} className="p-5 bg-white rounded-lg shadow border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
-                  {item.type === 'Activiteit' && item.event_date && (
-                    <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded border border-amber-200">
-                      📅 {new Date(item.event_date).toLocaleDateString(currentLang === 'nl' ? 'nl-BE' : currentLang, { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
+            {gefilterdeWaypoints.map((item) => {
+              const locatieDelen = [
+                item.locatie_naam,
+                item.gemeente,
+                item.land
+              ].filter(Boolean);
+
+              return (
+                <div key={item.id} className="p-5 bg-white rounded-lg shadow border border-slate-200">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
+                    {item.type === 'Activiteit' && item.event_date && (
+                      <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded border border-amber-200">
+                        📅 {new Date(item.event_date).toLocaleDateString(currentLang === 'nl' ? 'nl-BE' : currentLang, { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-slate-500 mb-2">
+                    Type: {vertaalType(item.type)} | Locatie: {locatieDelen.join(', ')}
+                  </p>
+                  
+                  {item.contact && <p className="text-sm text-slate-700">Tel: {item.contact}</p>}
+                  {item.email && <p className="text-sm text-slate-700">E-mail: <a href={`mailto:${item.email}`} className="text-emerald-600 underline">{item.email}</a></p>}
+                  {item.website && <p className="text-sm text-slate-700">Website: <a href={item.website.startsWith('http') ? item.website : `https://${item.website}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 underline">{item.website}</a></p>}
+
+                  {item.description && (
+                    <p className="text-sm text-slate-600 my-2 italic bg-slate-50 p-2 rounded border border-slate-100">
+                      "{item.description}"
+                    </p>
+                  )}
+                  {item.domeinen && item.domeinen.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {item.domeinen.map((domein, index) => (
+                        <span key={index} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                          {domein}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                <p className="text-sm text-slate-500 mb-2">
-                  Type: {vertaalType(item.type)} | Locatie: {item.locatie_naam ? `${item.locatie_naam} – ` : ''}{item.gemeente}{item.land ? `, ${item.land}` : ''}
-                </p>
-                
-                {item.contact && <p className="text-sm text-slate-700">Tel: {item.contact}</p>}
-                {item.email && <p className="text-sm text-slate-700">E-mail: <a href={`mailto:${item.email}`} className="text-emerald-600 underline">{item.email}</a></p>}
-                {item.website && <p className="text-sm text-slate-700">Website: <a href={item.website.startsWith('http') ? item.website : `https://${item.website}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 underline">{item.website}</a></p>}
-
-                {item.description && (
-                  <p className="text-sm text-slate-600 my-2 italic bg-slate-50 p-2 rounded border border-slate-100">
-                    "{item.description}"
-                  </p>
-                )}
-                {item.domeinen && item.domeinen.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {item.domeinen.map((domein, index) => (
-                      <span key={index} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
-                        {domein}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
