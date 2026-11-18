@@ -27,7 +27,7 @@ const countryPhoneCodes = [
   { code: '+973', label: '🇧🇭 Bahrein (+973)' },
   { code: '+880', label: '🇧🇩 Bangladesh (+880)' },
   { code: '+375', label: '🇧🇾 Wit-Rusland (+375)' },
-  { code: '+501', label: '🇧ℤ Belize (+501)' },
+  { code: '+501', label: '🇧🇿 Belize (+501)' },
   { code: '+229', label: '🇧🇯 Benin (+229)' },
   { code: '+591', label: '🇧🇴 Bolivia (+591)' },
   { code: '+387', label: '🇧🇦 Bosnië en Herzegovina (+387)' },
@@ -130,6 +130,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
   const [formData, setFormData] = useState({
     naam: '',
     event_date: '',
+    locatie_naam: '',
     adres: '',
     gemeente: '',
     land: 'België',
@@ -198,6 +199,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       naam: formData.naam,
       type: selectedType,
       event_date: selectedType === 'Activiteit' && formData.event_date ? formData.event_date : null,
+      locatie_naam: formData.locatie_naam.trim() || null,
       gemeente: formData.gemeente + (formData.adres ? ` (${formData.adres})` : ''),
       land: formData.land || 'België',
       contact: volledigTelefoonnummer,
@@ -224,6 +226,7 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
       setFormData({
         naam: '',
         event_date: '',
+        locatie_naam: '',
         adres: '',
         gemeente: '',
         land: 'België',
@@ -345,6 +348,17 @@ export default function AddWaypointForm({ onWaypointAdded, currentLang = 'nl' })
             </h3>
             
             <div className="grid gap-3 md:grid-cols-3">
+              {/* Eerste veld: Naam van locatie of zaal (niet verplicht, max 50 tekens) */}
+              <input
+                type="text"
+                name="locatie_naam"
+                maxLength={50}
+                value={formData.locatie_naam}
+                onChange={handleChange}
+                placeholder={t.form.locationNamePlaceholder}
+                className="w-full p-2.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+
               <input
                 type="text"
                 name="adres"
