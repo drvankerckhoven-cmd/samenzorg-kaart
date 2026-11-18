@@ -91,12 +91,13 @@ export default function Home() {
   );
   const alleDomeinen = [t.search.all, ...gesorteerdeDomeinen];
 
-// 1. Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
+  // 1. Gefilterde lijst op basis van zoekbalk, type, domein & datum-vork
   const gefilterdeWaypoints = waypoints.filter((item) => {
     const zoek = zoekterm.toLowerCase();
 
     const matchZoekterm = zoekterm === '' || 
       (item.naam && item.naam.toLowerCase().includes(zoek)) ||
+      (item.locatie_naam && item.locatie_naam.toLowerCase().includes(zoek)) ||
       (item.gemeente && item.gemeente.toLowerCase().includes(zoek)) ||
       (item.land && item.land.toLowerCase().includes(zoek)) ||
       (item.adres && item.adres.toLowerCase().includes(zoek)) ||
@@ -110,6 +111,7 @@ export default function Home() {
     const matchDomein = selectDomein === t.search.all || selectDomein === 'Alles' || 
       (Array.isArray(item.domeinen) && item.domeinen.includes(selectDomein));
 
+    // Datum filteren voor activiteiten
     let matchDatum = true;
     if (item.type === 'Activiteit' && item.event_date) {
       if (datumVan && item.event_date < datumVan) matchDatum = false;
@@ -250,7 +252,6 @@ export default function Home() {
 
         {/* Interactieve Kaart */}
         <div className="mb-8">
-          <Map waypoints={kaartWaypoints} />
         </div>
 
         <div className="flex items-center justify-between mb-4">
@@ -280,7 +281,7 @@ export default function Home() {
                 </div>
 
                 <p className="text-sm text-slate-500 mb-2">
-                  Type: {vertaalType(item.type)} | Locatie: {item.gemeente}{item.land ? `, ${item.land}` : ''}
+                  Type: {vertaalType(item.type)} | Locatie: {item.locatie_naam ? `${item.locatie_naam} – ` : ''}{item.gemeente}{item.land ? `, ${item.land}` : ''}
                 </p>
                 
                 {item.contact && <p className="text-sm text-slate-700">Tel: {item.contact}</p>}
