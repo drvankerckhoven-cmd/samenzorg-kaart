@@ -37,8 +37,7 @@ export default function Home() {
   const [datumVan, setDatumVan] = useState(getIsoDate(vandaag));
   const [datumTot, setDatumTot] = useState(getIsoDate(eenMaandLater));
 
-  // Vinkje voor wel/niet tonen van regionale locaties
-  const [toonRegionaal, setToonRegionaal] = useState(false);
+  
 
   const t = translations[currentLang] || translations.nl;
 
