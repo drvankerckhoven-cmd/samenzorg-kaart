@@ -45,7 +45,7 @@ function formatTooltipDatum(item) {
   return tekst;
 }
 
-export default function Map({ waypoints }) {
+export default function Map({ waypoints, onMarkerClick }) {
   const defaultCenter = [51.0, 4.35];
 
   // 1. Filter alle waypoints met geldige coördinaten
@@ -84,6 +84,13 @@ export default function Map({ waypoints }) {
               key={key} 
               position={[eersteItem.latitude, eersteItem.longitude]}
               icon={isExact ? exactIcon : regionalIcon}
+              eventHandlers={{
+                click: () => {
+                  if (onMarkerClick) {
+                    onMarkerClick(items);
+                  }
+                }
+              }}
             >
               <Tooltip direction="top" offset={isExact ? [0, -30] : [0, -10]} opacity={0.95}>
                 <div className="w-80 sm:w-96 p-2 whitespace-normal">
@@ -107,8 +114,8 @@ export default function Map({ waypoints }) {
                           </div>
                         ))}
                       </div>
-                      <p className="text-[11px] text-slate-500 italic">
-                        Bekijk het overzicht onder de kaart voor alle details.
+                      <p className="text-[11px] text-emerald-700 font-semibold">
+                        👆 Klik om alle details onder de kaart te bekijken
                       </p>
                     </div>
                   ) : (
@@ -151,6 +158,10 @@ export default function Map({ waypoints }) {
                           ))}
                         </div>
                       )}
+
+                      <p className="text-[11px] text-emerald-700 font-semibold mt-2">
+                        👆 Klik voor alle contactgegevens & details
+                      </p>
                     </div>
                   )}
                 </div>
