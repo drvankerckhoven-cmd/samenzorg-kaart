@@ -31,6 +31,7 @@ export default function Home() {
   const [currentLang, setCurrentLang] = useState('nl');
   const [waypoints, setWaypoints] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [highlightedIds, setHighlightedIds] = useState([]);
 
   const [zoekterm, setZoekterm] = useState('');
   const [selectType, setSelectType] = useState('Alles');
@@ -95,6 +96,27 @@ export default function Home() {
   useEffect(() => {
     fetchWaypoints();
   }, [fetchWaypoints]);
+
+  // Klik op een marker op de kaart: scroll naar het overzichtskaartje en laat het oplichten
+  const handleMarkerClick = useCallback((geklikteItems) => {
+    if (!geklikteItems || geklikteItems.length === 0) return;
+
+    const ids = geklikteItems.map((item) => item.id);
+    setHighlightedIds(ids);
+
+    // Zoek het eerste bijbehorende kaartje in het overzicht en scrol er soepel naartoe
+    const eersteElement = document.getElementById(`waypoint-${ids[0]}`);
+    if (eersteElement) {
+      eersteElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Haal de groene markering na 4 seconden weer rustig weg
+    setTimeout(() => {
+      setHighlightedIds((huidige) =>
+        huidige.filter((id) => !ids.includes(id))
+      );
+    }, 4000);
+  }, []);
 
   const vasteTypeOpties = [
     { key: 'Alles', label: t.search.all },
@@ -272,7 +294,7 @@ export default function Home() {
 
         {/* Interactieve Kaart (VERGEET DE SPATIE TUSSEN < EN Map NIET WEG TE HALEN!) */}
         <div className="mb-8">
-          <Map waypoints={kaartWaypoints} />
+          < Map waypoints={kaartWaypoints} onMarkerClick={handleMarkerClick} />
         </div>
 
         <div className="flex items-center justify-between mb-4">
@@ -297,8 +319,18 @@ export default function Home() {
                 item.land
               ].filter(Boolean);
 
+              const isHighlighted = highlightedIds.includes(item.id);
+
               return (
-                <div key={item.id} className="p-5 bg-white rounded-lg shadow border border-slate-200">
+                <div
+                  key={item.id}
+                  id={`waypoint-${item.id}`}
+                  className={`p-5 rounded-lg shadow border transition-all duration-500 ${
+                    isHighlighted
+                      ? 'bg-emerald-50 border-emerald-500 ring-4 ring-emerald-200 scale-[1.01]'
+                      : 'bg-white border-slate-200'
+                  }`}
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                     <h3 className="text-xl font-bold text-slate-900">{item.naam}</h3>
                     {item.type === 'Activiteit' && item.event_date && (
