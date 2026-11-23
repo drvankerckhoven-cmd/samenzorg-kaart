@@ -294,7 +294,7 @@ export default function Home() {
 
         {/* Interactieve Kaart (VERGEET DE SPATIE TUSSEN < EN Map NIET WEG TE HALEN!) */}
         <div className="mb-8">
-          < Map waypoints={kaartWaypoints} onMarkerClick={handleMarkerClick} />
+          <Map waypoints={kaartWaypoints} onMarkerClick={handleMarkerClick} />
         </div>
 
         <div className="flex items-center justify-between mb-4">
