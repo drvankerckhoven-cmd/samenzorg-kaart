@@ -22,6 +22,29 @@ const regionalIcon = L.divIcon({
   iconAnchor: [8, 8]
 });
 
+function formatTooltipDatum(item) {
+  if (!item.event_date) return '';
+  const dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
+  const startStr = new Date(item.event_date).toLocaleDateString('nl-BE', dateOpts);
+  const heeftEindDatum = item.event_end_date && item.event_end_date !== item.event_date;
+  const eindStr = heeftEindDatum
+    ? new Date(item.event_end_date).toLocaleDateString('nl-BE', dateOpts)
+    : '';
+
+  let tekst = startStr;
+  if (item.event_start_time) tekst += ` (${item.event_start_time}`;
+  if (heeftEindDatum) {
+    if (item.event_start_time) tekst += ')';
+    tekst += ` – ${eindStr}`;
+    if (item.event_end_time) tekst += ` (${item.event_end_time})`;
+  } else if (item.event_end_time) {
+    tekst += item.event_start_time ? ` - ${item.event_end_time})` : ` (tot ${item.event_end_time})`;
+  } else if (item.event_start_time) {
+    tekst += ')';
+  }
+  return tekst;
+}
+
 export default function Map({ waypoints }) {
   const defaultCenter = [51.0, 4.35];
 
@@ -63,17 +86,29 @@ export default function Map({ waypoints }) {
               icon={isExact ? exactIcon : regionalIcon}
             >
               <Tooltip direction="top" offset={isExact ? [0, -30] : [0, -10]} opacity={0.95}>
-                <div className="w-80 sm:w-96 p-2">
+                <div className="w-80 sm:w-96 p-2 whitespace-normal">
                   {isMeervoudig ? (
                     <div>
                       <strong className="block text-slate-900 text-sm font-bold mb-1">
                         {items.length} initiatieven / activiteiten op deze locatie
                       </strong>
                       <p className="text-xs text-slate-600 mb-2">
-                        Regio: <span className="font-semibold">{eersteItem.gemeente}</span>
+                        Regio: <span className="font-semibold">{eersteItem.gemeente || eersteItem.land}</span>
                       </p>
-                      <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 leading-relaxed">
-                        Bekijk het overzicht onder de kaart voor alle individuele details.
+                      <div className="flex flex-col gap-1.5 mb-2 max-h-48 overflow-y-auto">
+                        {items.map((subItem) => (
+                          <div key={subItem.id} className="text-xs bg-slate-50 p-1.5 rounded border border-slate-100">
+                            <span className="font-bold text-slate-800 block">{subItem.naam}</span>
+                            {Array.isArray(subItem.domeinen) && subItem.domeinen.length > 0 && (
+                              <span className="text-[11px] text-emerald-700 font-medium">
+                                {subItem.domeinen.join(' • ')}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-slate-500 italic">
+                        Bekijk het overzicht onder de kaart voor alle details.
                       </p>
                     </div>
                   ) : (
@@ -87,19 +122,34 @@ export default function Map({ waypoints }) {
                         )}
                       </div>
 
-                      {/* Datum tonen indien aanwezig (bij activiteiten) */}
+                      {/* Datum en uren tonen indien aanwezig (bij activiteiten) */}
                       {eersteItem.type === 'Activiteit' && eersteItem.event_date && (
                         <div className="mb-2">
                           <span className="inline-block text-xs bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded border border-amber-200">
-                            📅 {new Date(eersteItem.event_date).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            📅 {formatTooltipDatum(eersteItem)}
                           </span>
                         </div>
                       )}
 
+                      {/* Korte beschrijving */}
                       {eersteItem.description && (
                         <p className="text-xs text-slate-700 mt-1 whitespace-pre-wrap leading-relaxed">
                           {eersteItem.description}
                         </p>
+                      )}
+
+                      {/* Domeinen / Thema's */}
+                      {Array.isArray(eersteItem.domeinen) && eersteItem.domeinen.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-slate-100">
+                          {eersteItem.domeinen.map((domein, index) => (
+                            <span
+                              key={index}
+                              className="text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium px-2 py-0.5 rounded"
+                            >
+                              {domein}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   )}
